@@ -1,0 +1,63 @@
+# ==========================================
+# 1. Archivos del Sistema Operativo (Basura)
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# 2. Configuración de Editores de Código
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ==========================================
+# 3. Archivos de Entorno y Secretos (¡CRÍTICO!)
+# ==========================================
+# NUNCA subas claves API, contraseñas o tokens
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==========================================
+# 4. Dependencias (Para el futuro si usas npm)
+# ==========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+
+# ==========================================
+# 5. Archivos de Compilación / Build (PWA)
+# ==========================================
+# Si PWA Builder o herramientas generan carpetas de salida
+dist/
+build/
+out/
+*.aab
+*.apfk
+*.zip
+
+# ==========================================
+# 6. Logs y archivos temporales
+# ==========================================
+*.log
+logs/
+*.tmp
+*.temp

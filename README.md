@@ -14,7 +14,7 @@ Una aplicación web rápida, segura y sin dependencias para explorar pasajes bí
 3. ¡Listo! No requiere instalación ni servidor.
 
 ## 📂 Estructura del proyecto
-- `public/`: Archivos de despliegue.
+- `/`: Archivos de despliegue.
 - `src/`: Código fuente organizado (CSS, JS, datos).
 
 ## 📄 Licencia

@@ -3,161 +3,71 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#6366f1" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
-  <meta name="description" content="Selector bíblico offline: busca, copia y guarda tus versículos favoritos." />
-  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#6366f1" />
   <title>📖 Selector Bíblico</title>
-
-  <!-- Preconnect para rendimiento -->
-  <link rel="preconnect" href="https://bible-api.com" crossorigin />
-  <link rel="dns-prefetch" href="https://bible-api.com" />
-
-  <!-- Estilos -->
   <link rel="stylesheet" href="scr/styles.css" />
-
-  <!-- Icono SVG inline (sin request extra) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>" />
 </head>
 <body>
-  <!-- Botón de tema: accesible y con aria-label -->
-  <button
-    type="button"
-    class="theme-toggle"
-    id="themeToggle"
-    aria-label="Cambiar tema claro/oscuro"
-    title="Cambiar tema (T)">
-    <span class="theme-icon" aria-hidden="true">🌙</span>
+  <button type="button" class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
+    <span class="theme-icon">🌙</span>
   </button>
 
-  <header class="site-header" role="banner">
+  <header class="site-header">
     <h1>📖 Selector Bíblico</h1>
     <p class="site-subtitle">Busca, copia y guarda tus versículos favoritos</p>
   </header>
 
-  <main class="main-content" id="main">
-    <!-- Formulario de selección -->
-    <section aria-labelledby="selector-heading">
-      <h2 id="selector-heading" class="sr-only">Seleccionar pasaje</h2>
-
-      <form id="verseForm" class="verse-form" novalidate>
-        <div class="select-grid">
-          <!-- Versión -->
-          <div class="form-group">
-            <label for="version">Versión</label>
-            <div class="select-wrapper">
-              <select id="version" name="version" required>
-                <option value="rvr1960">Reina-Valera 1960</option>
-                <option value="nvi">Nueva Versión Internacional</option>
-                <option value="lbla">La Biblia de las Américas</option>
-                <option value="ntv">Nueva Traducción Viviente</option>
-              </select>
-              <span class="select-arrow" aria-hidden="true">▾</span>
-            </div>
-          </div>
-
-          <!-- Libro -->
-          <div class="form-group">
-            <label for="book">Libro</label>
-            <div class="select-wrapper">
-              <select id="book" name="book" required>
-                <option value="">Cargando libros…</option>
-              </select>
-              <span class="select-arrow" aria-hidden="true">▾</span>
-            </div>
-          </div>
-
-          <!-- Capítulo -->
-          <div class="form-group">
-            <label for="chapter">Capítulo</label>
-            <div class="select-wrapper">
-              <select id="chapter" name="chapter" required disabled>
-                <option value="">—</option>
-              </select>
-              <span class="select-arrow" aria-hidden="true">▾</span>
-            </div>
-          </div>
-
-          <!-- Versículo -->
-          <div class="form-group">
-            <label for="verse">Versículo</label>
-            <div class="select-wrapper">
-              <select id="verse" name="verse" required disabled>
-                <option value="">—</option>
-              </select>
-              <span class="select-arrow" aria-hidden="true">▾</span>
-            </div>
-          </div>
+  <main class="main-content">
+    <form id="verseForm" class="verse-form" novalidate>
+      <div class="select-grid">
+        <div class="form-group">
+          <label for="book">Libro</label>
+          <select id="book" required>
+            <option value="">Cargando libros…</option>
+          </select>
         </div>
 
-        <div class="button-group">
-          <button type="submit" class="btn-primary" id="btnShow">
-            <span aria-hidden="true">📖</span> Mostrar versículo
-          </button>
-          <button type="button" class="btn-secondary" id="btnRandom">
-            <span aria-hidden="true">🎲</span> Aleatorio
-          </button>
-          <button type="button" class="btn-secondary" id="btnCopy" disabled>
-            <span aria-hidden="true">📋</span> Copiar
-          </button>
-          <button type="button" class="btn-secondary" id="btnFavorite" disabled>
-            <span aria-hidden="true">⭐</span> Guardar
-          </button>
+        <div class="form-group">
+          <label for="chapter">Capítulo</label>
+          <select id="chapter" required disabled>
+            <option value="">—</option>
+          </select>
         </div>
-      </form>
-    </section>
 
-    <!-- Visor del versículo -->
-    <section
-      class="verse-display"
-      id="verseDisplay"
-      aria-live="polite"
-      aria-atomic="true"
-      aria-busy="false"
-      role="status">
+        <div class="form-group">
+          <label for="verse">Versículo</label>
+          <select id="verse" required disabled>
+            <option value="">—</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn-primary">📖 Mostrar</button>
+        <button type="button" class="btn-secondary" id="btnRandom">🎲 Aleatorio</button>
+        <button type="button" class="btn-secondary" id="btnCopy" disabled>📋 Copiar</button>
+        <button type="button" class="btn-secondary" id="btnFavorite" disabled>⭐ Guardar</button>
+      </div>
+    </form>
+
+    <section class="verse-display" id="verseDisplay" aria-live="polite">
       <p class="verse-placeholder">Selecciona un pasaje para ver el versículo</p>
     </section>
 
-    <!-- Favoritos -->
-    <section class="favorites-section" aria-labelledby="fav-heading">
-      <header class="favorites-header">
-        <h2 id="fav-heading">⭐ Favoritos guardados</h2>
-        <button
-          type="button"
-          class="btn-link"
-          id="btnClearFav"
-          hidden
-          aria-label="Borrar todos los favoritos">
-          Borrar todo
-        </button>
-      </header>
-      <ul class="favorites-list" id="favoritesList" role="list">
-        <li class="empty-state" id="emptyFav">
-          Aún no has guardado ningún versículo.
-        </li>
+    <section class="favorites-section">
+      <h2>⭐ Favoritos guardados</h2>
+      <ul class="favorites-list" id="favoritesList">
+        <li class="empty-state">Aún no has guardado ningún versículo.</li>
       </ul>
     </section>
   </main>
 
-  <!-- Toast de notificaciones -->
-  <div
-    class="toast"
-    id="toast"
-    role="status"
-    aria-live="polite"
-    aria-atomic="true"
-    hidden>
-    <span id="toastMsg"></span>
-  </div>
+  <div class="toast" id="toast" hidden><span id="toastMsg"></span></div>
 
-  <footer class="site-footer" role="contentinfo">
-    <small>
-      Datos de muestra representativa · Hecho con ❤️ ·
-      <kbd>T</kbd> cambiar tema · <kbd>R</kbd> aleatorio · <kbd>C</kbd> copiar
-    </small>
+  <footer class="site-footer">
+    <small>Datos de muestra representativa · Hecho con ❤️</small>
   </footer>
 
-  <!-- Script con defer para no bloquear el render -->
   <script src="scr/js/app.js" defer></script>
 </body>
 </html>

@@ -1,175 +1,279 @@
-/* ============================================================
-   INICIALIZACIÓN DE SELECTORES
-   ============================================================ */
-const books = Object.keys(BIBLIA).sort((a, b) => a.localeCompare(b, 'es'));
-const bookSel = $('book'), chapSel = $('chapter'), verSel = $('verse');
+"use strict";
 
-function populateBooks() {
-  bookSel.innerHTML = '<option value="">-- Libro --</option>' +
-    books.map(b => `<option value="${escapeHTML(b)}">${escapeHTML(b)}</option>`).join('');
+/* ===== Selector Bíblico — lógica principal ===== */
+
+const RUTA_DATOS = "data/biblia.json";
+const LS_FAV  = "selector-biblico:favoritos";
+const LS_TEMA = "selector-biblico:tema";
+
+let BIBLIA = null;  // datos cargados desde el JSON
+let actual = null;  // versículo actualmente en pantalla
+
+/* Referencias al DOM */
+const bookSel  = $("book");
+const chapSel  = $("chapter");
+const verSel   = $("verse");
+const display  = $("verseDisplay");
+const favList  = $("favList");
+const themeBtn = $("themeToggle");
+
+/* ============ CARGA Y VALIDACIÓN DE DATOS ============ */
+
+async function cargarDatos() {
+  const res = await fetch(RUTA_DATOS);
+  if (!res.ok) throw new Error(`Error HTTP ${res.status} al leer ${RUTA_DATOS}`);
+  const json = await res.json();
+  validarDatos(json);
+  return json;
 }
 
-function populateChapters(book) {
-  if (!book || !BIBLIA[book]) {
-    chapSel.innerHTML = '<option value="">-- Capítulo --</option>';
-    return;
+/** Valida la estructura del dataset antes de usarlo (calidad de datos). */
+function validarDatos(json) {
+  const errores = [];
+
+  if (!json || typeof json !== "object") errores.push("El archivo no contiene un objeto JSON válido.");
+  if (!json.libros || typeof json.libros !== "object") errores.push("Falta la clave principal \"libros\".");
+  if (errores.length) throw new Error(errores.join(" "));
+
+  for (const [libro, capitulos] of Object.entries(json.libros)) {
+    if (typeof capitulos !== "object" || capitulos === null) {
+      errores.push(`El libro "${libro}" no tiene capítulos válidos.`);
+      continue;
+    }
+    for (const [cap, versiculos] of Object.entries(capitulos)) {
+      if (!/^\d+$/.test(cap)) { errores.push(`Capítulo no numérico en ${libro}: "${cap}".`); continue; }
+      for (const [num, texto] of Object.entries(versiculos)) {
+        if (!/^\d+$/.test(num)) errores.push(`Versículo no numérico en ${libro} ${cap}: "${num}".`);
+        if (typeof texto !== "string" || texto.trim() === "") errores.push(`Texto vacío en ${libro} ${cap}:${num}.`);
+      }
+    }
   }
-  const chapters = Object.keys(BIBLIA[book]).map(Number).sort((a, b) => a - b);
-  chapSel.innerHTML = '<option value="">-- Capítulo --</option>' +
-    chapters.map(c => `<option value="${c}">${c}</option>`).join('');
-}
-
-function populateVerses(book, chapter) {
-  if (!book || !chapter || !BIBLIA[book]?.[chapter]) {
-    verSel.innerHTML = '<option value="">-- Versículo --</option>';
-    return;
+  if (errores.length) {
+    throw new Error("Datos con problemas → " + errores.slice(0, 3).join(" | "));
   }
-  const verses = Object.keys(BIBLIA[book][chapter]).map(Number).sort((a, b) => a - b);
-  verSel.innerHTML = '<option value="">-- Versículo --</option>' +
-    verses.map(v => `<option value="${v}">${v}</option>`).join('');
 }
 
-bookSel.addEventListener('change', () => {
-  populateChapters(bookSel.value);
-  populateVerses('', '');
+/* ============ SELECTORES EN CASCADA ============ */
+
+/** Llena un <select> creando nodos (sin innerHTML) y con DocumentFragment (rápido). */
+function llenarSelect(select, valores, lugar) {
+  const frag = document.createDocumentFragment();
+
+  const vacia = document.createElement("option");
+  vacia.value = "";
+  vacia.textContent = lugar;
+  frag.appendChild(vacia);
+
+  for (const v of valores) {
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    frag.appendChild(opt);
+  }
+
+  select.textContent = "";
+  select.appendChild(frag);
+}
+
+function iniciarSelectores() {
+  llenarSelect(bookSel, Object.keys(BIBLIA), "— Libro —");
+  llenarSelect(chapSel, [], "— Capítulo —");
+  llenarSelect(verSel, [], "— Versículo —");
+}
+
+bookSel.addEventListener("change", () => {
+  const libro = bookSel.value;
+  llenarSelect(chapSel, libro ? Object.keys(BIBLIA[libro]).map(Number) : [], "— Capítulo —");
+  llenarSelect(verSel, [], "— Versículo —");
+  limpiarAviso();
 });
-chapSel.addEventListener('change', () => populateVerses(bookSel.value, chapSel.value));
 
-/* ============================================================
-   MOSTRAR VERSÍCULO
-   ============================================================ */
-function displayVerse(book, chapter, verse) {
-  clearError();
-  if (!book) return showError('Selecciona un libro.');
-  if (!chapter) return showError('Selecciona un capítulo.');
-  if (!verse) return showError('Selecciona un versículo.');
-  const text = BIBLIA[book]?.[chapter]?.[verse];
-  if (!text) return showError('Versículo no disponible en la muestra.');
-  $('verseDisplay').innerHTML =
-    `"${escapeHTML(text)}"<span class="verse-ref">— ${escapeHTML(book)} ${chapter}:${verse}</span>`;
-}
-
-$('showBtn').addEventListener('click', () => {
-  displayVerse(bookSel.value, chapSel.value, verSel.value);
+chapSel.addEventListener("change", () => {
+  const libro = bookSel.value, cap = chapSel.value;
+  llenarSelect(verSel, (libro && cap) ? Object.keys(BIBLIA[libro][cap]).map(Number) : [], "— Versículo —");
+  limpiarAviso();
 });
 
-/* ============================================================
-   VERSÍCULO ALEATORIO
-   ============================================================ */
-function randomVerse() {
-  const b = books[Math.floor(Math.random() * books.length)];
-  const chapters = Object.keys(BIBLIA[b]).map(Number);
-  const c = chapters[Math.floor(Math.random() * chapters.length)];
-  const verses = Object.keys(BIBLIA[b][c]).map(Number);
-  const v = verses[Math.floor(Math.random() * verses.length)];
-  bookSel.value = b;
-  populateChapters(b);
-  chapSel.value = c;
-  populateVerses(b, c);
-  verSel.value = v;
-  displayVerse(b, c, v);
+/* ============ MOSTRAR Y ALEATORIO ============ */
+
+function pintarVersiculo(libro, cap, vers) {
+  const texto = BIBLIA[libro][cap][vers];
+  actual = { libro, cap, vers, texto };
+
+  display.textContent = "";
+  display.appendChild(crearElemento("span", "ref verso-nuevo", `${libro} ${cap}:${vers}`));
+  display.appendChild(crearElemento("span", "texto verso-nuevo", texto));
 }
-$('randomBtn').addEventListener('click', randomVerse);
 
-/* ============================================================
-   FAVORITOS (localStorage, con validación)
-   ============================================================ */
-const FAV_KEY = 'biblia_favoritos_v1';
+$("showBtn").addEventListener("click", () => {
+  if (!BIBLIA) { avisar("Los datos aún no están disponibles."); return; }
+  const libro = bookSel.value, cap = chapSel.value, vers = verSel.value;
+  if (!libro || !cap || !vers) { avisar("⚠️ Elige libro, capítulo y versículo antes de mostrar."); return; }
+  limpiarAviso();
+  pintarVersiculo(libro, cap, vers);
+});
 
-function loadFavs() {
+$("randomBtn").addEventListener("click", () => {
+  if (!BIBLIA) { avisar("Los datos aún no están disponibles."); return; }
+  const libro = elegir(Object.keys(BIBLIA));
+  const cap   = elegir(Object.keys(BIBLIA[libro]));
+  const vers  = elegir(Object.keys(BIBLIA[libro][cap]));
+
+  bookSel.value = libro;
+  llenarSelect(chapSel, Object.keys(BIBLIA[libro]).map(Number), "— Capítulo —");
+  chapSel.value = cap;
+  llenarSelect(verSel, Object.keys(BIBLIA[libro][cap]).map(Number), "— Versículo —");
+  verSel.value = vers;
+
+  limpiarAviso();
+  pintarVersiculo(libro, cap, vers);
+});
+
+/* ============ COPIAR ============ */
+
+$("copyBtn").addEventListener("click", async () => {
+  if (!actual) { avisar("No hay versículo en pantalla para copiar."); return; }
+  const texto = `«${actual.texto}» (${actual.libro} ${actual.cap}:${actual.vers})`;
   try {
-    const raw = localStorage.getItem(FAV_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(f =>
-      f && typeof f === 'object' &&
-      typeof f.book === 'string' &&
-      Number.isInteger(f.chapter) &&
-      Number.isInteger(f.verse) &&
-      BIBLIA[f.book]?.[f.chapter]?.[f.verse]
-    );
-  } catch { return []; }
-}
+    await copiarAlPortapapeles(texto);
+    avisar("📋 Versículo copiado al portapapeles.", "ok");
+  } catch {
+    avisar("No se pudo copiar automáticamente. Selecciona el texto de forma manual.");
+  }
+});
 
-function saveFavs(favs) {
-  try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); }
-  catch { showError('No se pudo guardar (almacenamiento bloqueado).'); }
-}
+/* ============ FAVORITOS ============ */
 
-function renderFavs() {
-  const favs = loadFavs();
-  const ul = $('favList');
+$("favBtn").addEventListener("click", () => {
+  if (!actual) { avisar("Primero muestra un versículo para poder guardarlo."); return; }
+  const favs = leerStorage(LS_FAV, []);
+  const clave = `${actual.libro}|${actual.cap}|${actual.vers}`;
+
+  if (favs.some(f => f.clave === clave)) { avisar("Ese versículo ya está en favoritos.", "ok"); return; }
+
+  favs.push({ clave, libro: actual.libro, cap: actual.cap, vers: actual.vers, texto: actual.texto });
+  if (!guardarStorage(LS_FAV, favs)) { avisar("No se pudo guardar en este navegador."); return; }
+
+  pintarFavoritos();
+  avisar("⭐ Guardado en favoritos.", "ok");
+});
+
+function pintarFavoritos() {
+  const favs = leerStorage(LS_FAV, []);
+  favList.textContent = "";
+
   if (!favs.length) {
-    ul.innerHTML = '<li class="empty">Aún no tienes favoritos guardados.</li>';
+    favList.appendChild(crearElemento("li", "vacio",
+      "Aún no hay favoritos. Muestra un pasaje y pulsa ⭐ Guardar."));
     return;
   }
-  ul.innerHTML = favs.map((f, i) => `
-    <li data-idx="${i}" tabindex="0" role="button"
-        aria-label="Cargar ${escapeHTML(f.book)} ${f.chapter}:${f.verse}">
-      <span>${escapeHTML(f.book)} ${f.chapter}:${f.verse}</span>
-      <button class="fav-remove" data-idx="${i}" aria-label="Eliminar favorito">×</button>
-    </li>`).join('');
+
+  const frag = document.createDocumentFragment();
+  favs.forEach((f, i) => {
+    const li = document.createElement("li");
+
+    const abrir = crearElemento("button", "fav-load", `📖 ${f.libro} ${f.cap}:${f.vers}`);
+    abrir.type = "button";
+    abrir.dataset.i = i;
+    abrir.title = `Abrir ${f.libro} ${f.cap}:${f.vers}`;
+
+    const quitar = crearElemento("button", "fav-del", "✕");
+    quitar.type = "button";
+    quitar.dataset.del = i;
+    quitar.setAttribute("aria-label", `Eliminar ${f.libro} ${f.cap}:${f.vers} de favoritos`);
+
+    li.append(abrir, quitar);
+    frag.appendChild(li);
+  });
+  favList.appendChild(frag);
 }
 
-$('favBtn').addEventListener('click', () => {
-  const b = bookSel.value, c = parseInt(chapSel.value), v = parseInt(verSel.value);
-  if (!b || !c || !v) return showError('Selecciona un versículo antes de guardar.');
-  if (!BIBLIA[b]?.[c]?.[v]) return showError('Versículo no disponible.');
-  const favs = loadFavs();
-  if (favs.some(f => f.book === b && f.chapter === c && f.verse === v)) {
-    return showError('Este versículo ya está en favoritos.');
-  }
-  favs.push({ book: b, chapter: c, verse: v });
-  saveFavs(favs);
-  renderFavs();
-  clearError();
-});
+/* Delegación de eventos: un solo listener para toda la lista (eficiente). */
+favList.addEventListener("click", (e) => {
+  const favs = leerStorage(LS_FAV, []);
+  const cargar = e.target.closest("[data-i]");
+  const borrar = e.target.closest("[data-del]");
 
-$('favList').addEventListener('click', e => {
-  const removeBtn = e.target.closest('.fav-remove');
-  const item = e.target.closest('li[data-idx]');
-  if (removeBtn) {
-    const idx = parseInt(removeBtn.dataset.idx);
-    const favs = loadFavs();
-    favs.splice(idx, 1);
-    saveFavs(favs);
-    renderFavs();
-  } else if (item) {
-    const idx = parseInt(item.dataset.idx);
-    const f = loadFavs()[idx];
+  if (cargar) {
+    const f = favs[Number(cargar.dataset.i)];
     if (!f) return;
-    bookSel.value = f.book;
-    populateChapters(f.book);
-    chapSel.value = f.chapter;
-    populateVerses(f.book, f.chapter);
-    verSel.value = f.verse;
-    displayVerse(f.book, f.chapter, f.verse);
+    bookSel.value = f.libro;
+    llenarSelect(chapSel, Object.keys(BIBLIA[f.libro]).map(Number), "— Capítulo —");
+    chapSel.value = f.cap;
+    llenarSelect(verSel, Object.keys(BIBLIA[f.libro][f.cap]).map(Number), "— Versículo —");
+    verSel.value = f.vers;
+    limpiarAviso();
+    pintarVersiculo(f.libro, f.cap, f.vers);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  if (borrar) {
+    favs.splice(Number(borrar.dataset.del), 1);
+    guardarStorage(LS_FAV, favs);
+    pintarFavoritos();
   }
 });
 
-/* ============================================================
-   TEMA CLARO / OSCURO (persistente)
-   ============================================================ */
-const THEME_KEY = 'biblia_tema';
+/* ============ TEMA CLARO / OSCURO ============ */
 
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  $('themeToggle').textContent = theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro';
+function aplicarTema(tema) {
+  document.documentElement.setAttribute("data-theme", tema);
+  themeBtn.textContent = tema === "dark" ? "☀️ Claro" : "🌙 Oscuro";
+  themeBtn.setAttribute("aria-label",
+    tema === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro");
+  localStorage.setItem(LS_TEMA, tema);
 }
 
-$('themeToggle').addEventListener('click', () => {
-  const current = document.documentElement.getAttribute('data-theme') || 'light';
-  const next = current === 'dark' ? 'light' : 'dark';
-  applyTheme(next);
-  try { localStorage.setItem(THEME_KEY, next); } catch {}
+themeBtn.addEventListener("click", () => {
+  const nuevo = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  aplicarTema(nuevo);
 });
 
-try { applyTheme(localStorage.getItem(THEME_KEY) || 'light'); }
-catch { applyTheme('light'); }
+function aplicarTemaInicial() {
+  const guardado = localStorage.getItem(LS_TEMA);
+  const prefiereOscuro = window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+  aplicarTema(guardado || (prefiereOscuro ? "dark" : "light"));
+}
 
-/* ============================================================
-   ARRANQUE
-   ============================================================ */
-populateBooks();
-renderFavs();
+/* ============ ESTADÍSTICAS DEL DATASET ============ */
+
+function pintarEstadisticas(meta) {
+  let capitulos = 0, versiculos = 0;
+  for (const caps of Object.values(BIBLIA)) {
+    const lista = Object.values(caps);
+    capitulos += lista.length;
+    for (const v of lista) versiculos += Object.keys(v).length;
+  }
+  const fuente = meta && meta.fuente ? ` · ${meta.fuente}` : "";
+  $("stats").textContent =
+    `${Object.keys(BIBLIA).length} libros · ${capitulos} capítulos · ${versiculos} versículos${fuente}`;
+}
+
+/* ============ INICIO ============ */
+
+async function iniciar() {
+  aplicarTemaInicial();
+
+  display.textContent = "";
+  display.appendChild(crearElemento("span", "placeholder cargando", "Cargando datos…"));
+
+  try {
+    const json = await cargarDatos();
+    BIBLIA = json.libros;
+    iniciarSelectores();
+    pintarFavoritos();
+    pintarEstadisticas(json.meta);
+    display.textContent = "";
+    display.appendChild(crearElemento("span", "placeholder",
+      "Selecciona un libro, capítulo y versículo para comenzar…"));
+    limpiarAviso();
+  } catch (err) {
+    display.textContent = "";
+    display.appendChild(crearElemento("span", "placeholder", "No se pudieron cargar los datos."));
+    avisar("⚠️ " + err.message);
+    if (location.protocol === "file:") $("ayudaLocal").hidden = false;
+  }
+}
+
+iniciar();

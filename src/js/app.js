@@ -1,178 +1,264 @@
-"use strict";
+/* ============================================================
+   SELECTOR BÍBLICO — Lógica de aplicación (Adaptada a 66 libros)
+   ============================================================ */
+(function () {
+  'use strict';
 
-const LS_FAV  = "selector-biblico:favoritos";
-const LS_TEMA = "selector-biblico:tema";
-let actual = null;
-
-const bookSel  = $("book");
-const chapSel  = $("chapter");
-const verSel   = $("verse");
-const display  = $("verseDisplay");
-const favList  = $("favList");
-const themeBtn = $("themeToggle");
-
-/* --- Selectores --- */
-function llenarSelect(select, valores, lugar) {
-  select.innerHTML = `<option value="">${lugar}</option>` +
-    valores.map(v => `<option value="${v}">${v}</option>`).join("");
-}
-
-function iniciarSelectores() {
-  llenarSelect(bookSel, Object.keys(BIBLIA), "— Libro —");
-  llenarSelect(chapSel, [], "— Capítulo —");
-  llenarSelect(verSel, [], "— Versículo —");
-}
-
-bookSel.addEventListener("change", () => {
-  const libro = bookSel.value;
-  llenarSelect(chapSel, libro ? Object.keys(BIBLIA[libro]).map(Number) : [], "— Capítulo —");
-  llenarSelect(verSel, [], "— Versículo —");
-  limpiarAviso();
-});
-
-chapSel.addEventListener("change", () => {
-  const libro = bookSel.value, cap = chapSel.value;
-  llenarSelect(verSel, (libro && cap) ? Object.keys(BIBLIA[libro][cap]).map(Number) : [], "— Versículo —");
-  limpiarAviso();
-});
-
-/* --- Mostrar / Aleatorio --- */
-function pintarVersiculo(libro, cap, vers) {
-  const texto = BIBLIA[libro][cap][vers];
-  actual = { libro, cap, vers, texto };
-  // Usamos textContent para el texto (seguro) e innerHTML solo para la etiqueta ref
-  display.innerHTML = `<span class="ref">${libro} ${cap}:${vers}</span>`;
-  const spanTexto = document.createElement("span");
-  spanTexto.textContent = texto; 
-  display.appendChild(spanTexto);
-}
-
-$("showBtn").addEventListener("click", () => {
-  if (!BIBLIA) { avisar("Los datos aún no están disponibles."); return; }
-  const libro = bookSel.value, cap = chapSel.value, vers = verSel.value;
-  if (!libro || !cap || !vers) { avisar("Completa libro, capítulo y versículo para mostrar el pasaje."); return; }
-  limpiarAviso();
-  pintarVersiculo(libro, cap, vers);
-});
-
-$("randomBtn").addEventListener("click", () => {
-  if (!BIBLIA) { avisar("Los datos aún no están disponibles."); return; }
-  const libro = elegirAlAzar(Object.keys(BIBLIA));
-  const cap   = elegirAlAzar(Object.keys(BIBLIA[libro]));
-  const vers  = elegirAlAzar(Object.keys(BIBLIA[libro][cap]));
-
-  bookSel.value = libro;
-  llenarSelect(chapSel, Object.keys(BIBLIA[libro]).map(Number), "— Capítulo —");
-  chapSel.value = cap;
-  llenarSelect(verSel, Object.keys(BIBLIA[libro][cap]).map(Number), "— Versículo —");
-  verSel.value = vers;
-
-  limpiarAviso();
-  pintarVersiculo(libro, cap, vers);
-});
-
-/* --- Copiar --- */
-$("copyBtn").addEventListener("click", async () => {
-  if (!actual) { avisar("No hay versículo para copiar todavía."); return; }
-  const texto = `«${actual.texto}» — ${actual.libro} ${actual.cap}:${actual.vers}`;
-  try {
-    await copiarAlPortapapeles(texto);
-    avisar("Copiado al portapapeles.", true);
-  } catch {
-    avisar("No se pudo copiar automáticamente.");
-  }
-});
-
-/* --- Favoritos --- */
-$("favBtn").addEventListener("click", () => {
-  if (!actual) { avisar("Primero muestra un versículo antes de guardarlo."); return; }
-  const favs = leerStorage(LS_FAV, []);
-  const clave = `${actual.libro}|${actual.cap}|${actual.vers}`;
-  if (favs.some(f => f.clave === clave)) { avisar("Ese versículo ya está en favoritos.", true); return; }
-
-  favs.push({ clave, libro: actual.libro, cap: actual.cap, vers: actual.vers, texto: actual.texto });
-  guardarStorage(LS_FAV, favs);
-  pintarFavoritos();
-  avisar("Guardado en favoritos.", true);
-});
-
-function pintarFavoritos() {
-  const favs = leerStorage(LS_FAV, []);
-  if (!favs.length) {
-    favList.innerHTML = '<li class="empty">Aún no hay favoritos guardados.</li>';
-    return;
-  }
-  favList.innerHTML = favs.map((f, i) => `
-    <li>
-      <button type="button" class="load" data-i="${i}" title="Ver este versículo">${f.libro} ${f.cap}:${f.vers}</button>
-      <button type="button" class="del" data-del="${i}" aria-label="Quitar de favoritos">✖</button>
-    </li>`).join("");
-}
-
-favList.addEventListener("click", (e) => {
-  const favs = leerStorage(LS_FAV, []);
-  const load = e.target.closest("[data-i]");
-  const del  = e.target.closest("[data-del]");
-
-  if (load) {
-    const f = favs[Number(load.dataset.i)];
-    if (!f) return;
-    bookSel.value = f.libro;
-    llenarSelect(chapSel, Object.keys(BIBLIA[f.libro]).map(Number), "— Capítulo —");
-    chapSel.value = f.cap;
-    llenarSelect(verSel, Object.keys(BIBLIA[f.libro][f.cap]).map(Number), "— Versículo —");
-    verSel.value = f.vers;
-    limpiarAviso();
-    pintarVersiculo(f.libro, f.cap, f.vers);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-  if (del) {
-    favs.splice(Number(del.dataset.del), 1);
-    guardarStorage(LS_FAV, favs);
-    pintarFavoritos();
-  }
-});
-
-/* --- Tema --- */
-function aplicarTema(tema) {
-  document.documentElement.setAttribute("data-theme", tema);
-  themeBtn.textContent = tema === "dark" ? "☀️ Claro" : "🌙 Oscuro";
-  localStorage.setItem(LS_TEMA, tema);
-}
-
-themeBtn.addEventListener("click", () => {
-  const nuevo = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-  aplicarTema(nuevo);
-});
-
-/* --- Inicio --- */
-async function iniciar() {
-  const temaGuardado = localStorage.getItem(LS_TEMA);
-  const prefiereOscuro = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  aplicarTema(temaGuardado || (prefiereOscuro ? "dark" : "light"));
-
-  display.innerHTML = '<span class="cargando">Cargando datos…</span>';
-
-  try {
-    await cargarBiblia(); // Viene de data.js
-    iniciarSelectores();
-    pintarFavoritos();
-    display.innerHTML = "Selecciona un libro, capítulo y versículo para comenzar.";
-    limpiarAviso();
-
-    if (META_DATOS.fuente) {
-      $("stats").textContent = `Datos incluidos como muestra representativa (${META_DATOS.fuente}).`;
+  // 🛡️ FALLBACK: Datos integrados para que la app funcione 100% offline
+  // si el usuario abre el archivo directamente sin servidor local.
+  const FALLBACK_DATA = {
+    books: {
+      "Génesis": { "chapters": 50, "sample": { "1-1": "En el principio creó Dios los cielos y la tierra." } },
+      "Salmos": { "chapters": 150, "sample": { "23-1": "Jehová es mi pastor, nada me faltará." } },
+      "Juan": { "chapters": 21, "sample": { "3-16": "Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito." } },
+      "Filipenses": { "chapters": 4, "sample": { "4-13": "Todo lo puedo en Cristo que me fortalece." } },
+      "Apocalipsis": { "chapters": 22, "sample": { "3-20": "He aquí, yo estoy a la puerta y llamo." } }
+      // (El fetch intentará cargar los 66 libros desde data/biblia.json primero)
     }
-  } catch (err) {
-    display.innerHTML = "No se pudieron cargar los datos.";
-    avisar(err.message);
+  };
 
-    // Si está en file://, mostramos ayuda para que no parezca roto
-    if (location.protocol === "file:") {
-      const ayuda = $("ayudaLocal");
-      if (ayuda) ayuda.hidden = false;
+  let BIBLE_DATA = FALLBACK_DATA;
+  const state = { currentBook: null, currentChapter: null, currentVerse: null, currentText: '', favorites: [], theme: 'light' };
+
+  // ---------- UTILIDADES ----------
+  const $ = (sel) => document.querySelector(sel);
+  const storage = {
+    get: (key, fb) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fb; } catch { return fb; } },
+    set: (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { console.warn('Storage error:', e); } }
+  };
+
+  let toastTimer;
+  function toast(msg, type = '') {
+    const t = $('#toast'), m = $('#toastMsg');
+    m.textContent = msg;
+    t.className = `toast show ${type}`.trim();
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = 'toast'; }, 2500);
+  }
+
+  // ---------- CARGA DE DATOS ----------
+  async function initBibleData() {
+    try {
+      const response = await fetch('data/biblia.json');
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      BIBLE_DATA = await response.json();
+      console.log('✅ Datos bíblicos cargados desde data/biblia.json');
+    } catch (error) {
+      console.warn('⚠️ Usando datos bíblicos en caché (modo offline).', error);
+    }
+    populateBooks();
+  }
+
+  function populateBooks() {
+    const sel = $('#book');
+    sel.innerHTML = '<option value="">— Selecciona un libro —</option>';
+    Object.keys(BIBLE_DATA.books).forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  }
+
+  function populateChapters(bookName) {
+    const sel = $('#chapter');
+    sel.innerHTML = '<option value="">— Selecciona capítulo —</option>';
+    const total = BIBLE_DATA.books[bookName]?.chapters || 0;
+    for (let i = 1; i <= total; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i;
+      sel.appendChild(opt);
+    }
+    sel.disabled = false;
+    $('#verse').disabled = true;
+    $('#verse').innerHTML = '<option value="">—</option>';
+  }
+
+  function populateVerses(bookName, chapter) {
+    const sel = $('#verse');
+    sel.innerHTML = '<option value="">— Selecciona versículo —</option>';
+    // Si no tenemos el conteo exacto de versículos, usamos 50 como límite seguro de UX
+    const maxVerses = BIBLE_DATA.books[bookName]?.chapterVerses?.[chapter] || 50;
+    for (let i = 1; i <= maxVerses; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i;
+      sel.appendChild(opt);
+    }
+    sel.disabled = false;
+  }
+
+  // ---------- LÓGICA DE VERSÍCULOS ----------
+  function getVerseText(book, chapter, verse) {
+    const bookData = BIBLE_DATA.books[book];
+    if (!bookData) return 'Libro no encontrado.';
+    
+    const sampleKey = `${chapter}-${verse}`;
+    if (bookData.sample && bookData.sample[sampleKey]) {
+      return bookData.sample[sampleKey];
+    }
+    
+    // Fallback elegante para versículos no incluidos en la muestra
+    return `(Texto de muestra para ${book} ${chapter}:${verse}. Para el texto completo, integra una API bíblica o expande el archivo data/biblia.json con todos los versículos).`;
+  }
+
+  function showVerse() {
+    const book = $('#book').value, chapter = $('#chapter').value, verse = $('#verse').value;
+    if (!book || !chapter || !verse) {
+      toast('Selecciona libro, capítulo y versículo', 'error');
+      return;
+    }
+
+    const display = $('#verseDisplay');
+    display.setAttribute('aria-busy', 'true');
+    display.innerHTML = `<div class="skeleton title"></div><div class="skeleton line-1"></div><div class="skeleton line-2"></div>`;
+
+    setTimeout(() => {
+      state.currentBook = book;
+      state.currentChapter = chapter;
+      state.currentVerse = verse;
+      state.currentText = getVerseText(book, chapter, verse);
+
+      display.setAttribute('aria-busy', 'false');
+      display.dataset.state = 'loaded';
+      display.innerHTML = `
+        <div class="verse-ref">${book} ${chapter}:${verse}</div>
+        <div class="verse-text">"${state.currentText}"</div>
+      `;
+      $('#btnCopy').disabled = false;
+      $('#btnFavorite').disabled = false;
+      setTimeout(() => { display.dataset.state = ''; }, 500);
+    }, 300);
+  }
+
+  function randomVerse() {
+    const books = Object.keys(BIBLE_DATA.books);
+    const book = books[Math.floor(Math.random() * books.length)];
+    const maxCh = BIBLE_DATA.books[book].chapters;
+    const chapter = Math.floor(Math.random() * maxCh) + 1;
+    const verse = Math.floor(Math.random() * 30) + 1; // Versículo aleatorio seguro
+
+    $('#book').value = book;
+    populateChapters(book);
+    $('#chapter').value = chapter;
+    populateVerses(book, chapter);
+    $('#verse').value = Math.min(verse, 50); // Asegurar que esté en el rango del select
+    showVerse();
+  }
+
+  // ---------- ACCIONES ----------
+  async function copyVerse() {
+    if (!state.currentText) return;
+    const full = `${state.currentBook} ${state.currentChapter}:${state.currentVerse}\n"${state.currentText}"`;
+    try {
+      await navigator.clipboard.writeText(full);
+      toast('✓ Versículo copiado', 'success');
+    } catch {
+      toast('No se pudo copiar automáticamente', 'error');
     }
   }
-}
 
-iniciar();
+  function saveFavorite() {
+    if (!state.currentText) return;
+    const key = `${state.currentBook}-${state.currentChapter}-${state.currentVerse}`;
+    if (state.favorites.some(f => f.key === key)) return toast('Ya está en favoritos', 'error');
+    
+    state.favorites.unshift({ key, ref: `${state.currentBook} ${state.currentChapter}:${state.currentVerse}`, text: state.currentText, date: Date.now() });
+    storage.set('favorites', state.favorites);
+    renderFavorites();
+    toast('⭐ Guardado en favoritos', 'success');
+  }
+
+  function removeFavorite(key) {
+    state.favorites = state.favorites.filter(f => f.key !== key);
+    storage.set('favorites', state.favorites);
+    renderFavorites();
+  }
+
+  function renderFavorites() {
+    const list = $('#favoritesList'), btnClear = $('#btnClearFav');
+    if (state.favorites.length === 0) {
+      list.innerHTML = '<li class="empty-state">Aún no has guardado ningún versículo.</li>';
+      btnClear.hidden = true;
+      return;
+    }
+    btnClear.hidden = false;
+    list.innerHTML = state.favorites.map(f => `
+      <li class="favorite-item" data-key="${f.key}">
+        <div class="fav-content">
+          <div class="fav-ref">${f.ref}</div>
+          <div class="fav-text">"${f.text}"</div>
+        </div>
+        <div class="fav-actions">
+          <button type="button" class="btn-fav-copy" data-key="${f.key}" aria-label="Copiar">📋</button>
+          <button type="button" class="btn-fav-delete" data-key="${f.key}" aria-label="Eliminar">🗑️</button>
+        </div>
+      </li>
+    `).join('');
+  }
+
+  // ---------- EVENTOS ----------
+  function init() {
+    initTheme();
+    initBibleData();
+    state.favorites = storage.get('favorites', []);
+    renderFavorites();
+
+    $('#themeToggle').addEventListener('click', () => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      storage.set('theme', state.theme);
+      document.documentElement.dataset.theme = state.theme;
+      $('.theme-icon').textContent = state.theme === 'dark' ? '☀️' : '🌙';
+    });
+
+    $('#verseForm').addEventListener('submit', (e) => { e.preventDefault(); showVerse(); });
+    $('#btnRandom').addEventListener('click', randomVerse);
+    $('#btnCopy').addEventListener('click', copyVerse);
+    $('#btnFavorite').addEventListener('click', saveFavorite);
+    $('#btnClearFav').addEventListener('click', () => {
+      if (confirm('¿Borrar todos los favoritos?')) {
+        state.favorites = [];
+        storage.set('favorites', []);
+        renderFavorites();
+        toast('Favoritos borrados');
+      }
+    });
+
+    $('#favoritesList').addEventListener('click', (e) => {
+      const copyBtn = e.target.closest('.btn-fav-copy');
+      const delBtn = e.target.closest('.btn-fav-delete');
+      if (copyBtn) {
+        const f = state.favorites.find(x => x.key === copyBtn.dataset.key);
+        if (f) navigator.clipboard?.writeText(`${f.ref}\n"${f.text}"`).then(() => toast('✓ Copiado', 'success'));
+      }
+      if (delBtn) removeFavorite(delBtn.dataset.key);
+    });
+
+    $('#book').addEventListener('change', (e) => {
+      if (e.target.value) populateChapters(e.target.value);
+      else { $('#chapter').disabled = true; $('#verse').disabled = true; }
+    });
+    $('#chapter').addEventListener('change', (e) => {
+      if (e.target.value && $('#book').value) populateVerses($('#book').value, e.target.value);
+      else $('#verse').disabled = true;
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.matches('input, select, textarea')) return;
+      if (e.key.toLowerCase() === 't') { $('#themeToggle').click(); e.preventDefault(); }
+      else if (e.key.toLowerCase() === 'r') { randomVerse(); e.preventDefault(); }
+      else if (e.key.toLowerCase() === 'c' && state.currentText) { copyVerse(); e.preventDefault(); }
+    });
+  }
+
+  function initTheme() {
+    const saved = storage.get('theme', null);
+    state.theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.dataset.theme = state.theme;
+    $('.theme-icon').textContent = state.theme === 'dark' ? '☀️' : '🌙';
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();

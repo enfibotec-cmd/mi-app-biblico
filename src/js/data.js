@@ -5,7 +5,7 @@ window.BibleRepository = {
 
   async init() {
     try {
-      const response = await fetch('data/biblia.json');
+      const response = await fetch('../data/biblia.json');
       if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
       const json = await response.json();
       this.data = json.books;

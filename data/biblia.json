@@ -1,1 +1,73 @@
 
+{
+  "meta": {
+    "version": "1.0",
+    "fuente": "Muestra representativa (RVR1960)",
+    "actualizado": "2026-09-12",
+    "formato": "libros → capítulos → versículos"
+  },
+  "libros": {
+    "Génesis": {
+      "1": {
+        "1": "En el principio creó Dios los cielos y la tierra.",
+        "3": "Y dijo Dios: Sea la luz; y fue la luz.",
+        "27": "Y creó Dios al hombre a su imagen, a imagen de Dios lo creó; varón y hembra los creó."
+      },
+      "2": {
+        "18": "Y dijo Jehová Dios: No es bueno que el hombre esté solo; le haré ayuda idónea para él."
+      }
+    },
+    "Éxodo": {
+      "14": { "14": "Jehová peleará por vosotros, y vosotros estaréis tranquilos." },
+      "20": { "3": "No tendrás dioses ajenos delante de mí." }
+    },
+    "Josué": {
+      "1": { "9": "Mira que te mando que te esfuerces y seas valiente; no temas ni desmayes, porque Jehová tu Dios estará contigo en dondequiera que vayas." }
+    },
+    "Salmos": {
+      "23": {
+        "1": "Jehová es mi pastor; nada me faltará.",
+        "4": "Aunque ande en valle de sombra de muerte, no temeré mal alguno, porque tú estarás conmigo; tu vara y tu cayado me infundirán aliento."
+      },
+      "27": { "1": "Jehová es mi luz y mi salvación; ¿de quién temeré? Jehová es la fortaleza de mi vida; ¿de quién he de atemorizarme?" },
+      "46": { "1": "Dios es nuestro amparo y fortaleza, nuestro pronto auxilio en las tribulaciones." },
+      "119": { "105": "Lámpara es a mis pies tu palabra, y lumbrera a mi camino." }
+    },
+    "Proverbios": {
+      "3": {
+        "5": "Fíate de Jehová de todo tu corazón, y no te apoyes en tu propia prudencia.",
+        "6": "Reconócelo en todos tus caminos, y él enderezará tus veredas."
+      }
+    },
+    "Isaías": {
+      "40": { "31": "Pero los que esperan a Jehová tendrán nuevas fuerzas; levantarán alas como las águilas; correrán, y no se cansarán; caminarán, y no se fatigarán." },
+      "41": { "10": "No temas, porque yo estoy contigo; no desmayes, porque yo soy tu Dios que te esfuerzo; siempre te ayudaré, siempre te sustentaré con la diestra de mi justicia." }
+    },
+    "Mateo": {
+      "5": { "14": "Vosotros sois la luz del mundo; una ciudad asentada sobre un monte no se puede esconder." },
+      "6": { "33": "Mas buscad primeramente el reino de Dios y su justicia, y todas estas cosas os serán añadidas." },
+      "11": { "28": "Venid a mí todos los que estáis trabajados y cargados, y yo os haré descansar." }
+    },
+    "Juan": {
+      "3": { "16": "Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna." },
+      "8": { "32": "Y conoceréis la verdad, y la verdad os hará libres." },
+      "14": { "6": "Jesús le dijo: Yo soy el camino, y la verdad, y la vida; nadie viene al Padre, sino por mí." }
+    },
+    "Romanos": {
+      "8": { "28": "Y sabemos que a los que aman a Dios, todas las cosas les ayudan a bien, esto es, a los que conforme a su propósito son llamados." },
+      "12": { "2": "No os conforméis a este siglo, sino transformaos por medio de la renovación de vuestro entendimiento, para que comprobéis cuál sea la buena voluntad de Dios, agradable y perfecta." }
+    },
+    "Filipenses": {
+      "4": {
+        "6": "Por nada estéis afanosos, sino sean conocidas vuestras peticiones delante de Dios en toda oración y ruego, con acción de gracias.",
+        "13": "Todo lo puedo en Cristo que me fortalece."
+      }
+    },
+    "1 Juan": {
+      "4": { "19": "Nosotros le amamos a él, porque él nos amó primero." }
+    },
+    "Apocalipsis": {
+      "21": { "4": "Enjugará Dios toda lágrima de los ojos de ellos; y ya no habrá muerte, ni habrá más llanto, ni clamor, ni dolor; porque las primeras cosas pasaron." }
+    }
+  }
+}

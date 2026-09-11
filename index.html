@@ -3,251 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- ✅ MEJORA SEO: Meta description añadida -->
   <meta name="description" content="Selector de versículos bíblicos con favoritos, modo aleatorio y tema oscuro.">
   <meta name="theme-color" content="#6366f1">
   <title>Selector Bíblico</title>
 
-  <!-- ✅ MEJORA UX: Favicon SVG inline (sin petición extra) -->
+  <!-- Favicon SVG inline (sin petición extra) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
 
-  <style>
-    /* === VARIABLES DE TEMA === */
-    :root {
-      --bg-primary: #f5f5f5;
-      --bg-secondary: #ffffff;
-      --text-primary: #333333;
-      --text-secondary: #666666;
-      --accent: #6366f1;
-      --accent-hover: #4f46e5;
-      --border: #e0e0e0;
-      --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      --radius: 8px;
-    }
-
-    [data-theme="dark"] {
-      --bg-primary: #1a1a1a;
-      --bg-secondary: #2d2d2d;
-      --text-primary: #e0e0e0;
-      --text-secondary: #a0a0a0;
-      --accent: #818cf8;
-      --accent-hover: #6366f1;
-      --border: #404040;
-      --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    /* === RESET === */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      transition: background 0.3s ease, color 0.3s ease;
-    }
-
-    /* ✅ MEJORA A11Y: Clase utilitaria para texto oculto visualmente pero accesible */
-    .sr-only {
-      position: absolute;
-      width: 1px; height: 1px;
-      padding: 0; margin: -1px;
-      overflow: hidden;
-      clip: rect(0,0,0,0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    /* ✅ MEJORA SEMÁNTICA: Landmarks HTML5 */
-    .site-header {
-      background: var(--bg-secondary);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      text-align: center;
-      position: relative;
-    }
-
-    /* ✅ MEJORA A11Y: Un único h1 en el documento */
-    .site-header h1 {
-      font-size: 1.8rem;
-      font-weight: 600;
-    }
-
-    .main-content {
-      flex: 1;
-      max-width: 800px;
-      width: 100%;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-
-    /* ✅ MEJORA A11Y: Labels visibles asociados a cada control */
-    .form-group { margin-bottom: 1.25rem; }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      font-size: 0.95rem;
-    }
-
-    .select-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .select-wrapper { position: relative; }
-
-    select {
-      width: 100%;
-      padding: 0.75rem 2.5rem 0.75rem 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      font-size: 1rem;
-      cursor: pointer;
-      appearance: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    /* ✅ MEJORA A11Y: Foco visible y consistente */
-    select:focus, button:focus {
-      outline: 3px solid var(--accent);
-      outline-offset: 2px;
-      border-color: var(--accent);
-    }
-
-    .select-arrow {
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-      color: var(--text-secondary);
-    }
-
-    /* ✅ MEJORA A11Y: Botones semánticos <button> en lugar de <div> */
-    .button-group {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      margin-bottom: 2rem;
-    }
-
-    button {
-      flex: 1;
-      min-width: 140px;
-      padding: 0.75rem 1.25rem;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      font-family: inherit;
-    }
-
-    button:active { transform: translateY(1px); }
-
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-hover); }
-
-    .btn-secondary {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover { background: var(--bg-primary); }
-
-    /* ✅ MEJORA A11Y: Region con aria-live para anuncios dinámicos */
-    .verse-display {
-      background: var(--bg-secondary);
-      padding: 2rem;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      min-height: 150px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 1.1rem;
-      line-height: 1.8;
-    }
-
-    .favorites-section { margin-top: 3rem; }
-    .favorites-section h2 {
-      margin-bottom: 1rem;
-      font-size: 1.4rem;
-    }
-
-    .favorites-list { list-style: none; }
-
-    .favorite-item {
-      background: var(--bg-secondary);
-      padding: 1rem;
-      margin-bottom: 0.5rem;
-      border-radius: var(--radius);
-      border-left: 4px solid var(--accent);
-      box-shadow: var(--shadow);
-    }
-
-    /* ✅ MEJORA A11Y: Botón de tema con aria-label descriptivo */
-    .theme-toggle {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      box-shadow: var(--shadow);
-      z-index: 10;
-    }
-
-    .site-footer {
-      text-align: center;
-      padding: 1.5rem;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      background: var(--bg-secondary);
-      margin-top: auto;
-    }
-
-    /* ✅ MEJORA UX: Respeto a preferencia del sistema */
-    @media (prefers-reduced-motion: reduce) {
-      * { transition: none !important; animation: none !important; }
-    }
-
-    @media (max-width: 600px) {
-      .select-grid { grid-template-columns: 1fr; }
-      .button-group { flex-direction: column; }
-      button { width: 100%; }
-      .site-header h1 { font-size: 1.4rem; }
-    }
-  </style>
+  <!-- ✅ CSS EXTERNO: Mejora caché y mantenibilidad -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- ✅ MEJORA SEMÁNTICA: Landmark <header> -->
+  <!-- Landmark semántico: header -->
   <header class="site-header">
-    <!-- ✅ MEJORA A11Y: Un único h1 en el documento -->
     <h1>📖 Selector Bíblico</h1>
   </header>
 
-  <!-- ✅ MEJORA A11Y: Botón con aria-label y aria-pressed -->
+  <!-- Botón de tema accesible -->
   <button
     type="button"
     class="theme-toggle"
@@ -257,15 +30,13 @@
     🌙
   </button>
 
-  <!-- ✅ MEJORA SEMÁNTICA: Landmark <main> -->
+  <!-- Landmark semántico: main -->
   <main class="main-content">
 
-    <!-- ✅ MEJORA SEMÁNTICA: <section> con encabezado accesible -->
     <section aria-labelledby="selector-heading">
       <h2 id="selector-heading">Seleccionar pasaje</h2>
 
       <div class="select-grid">
-        <!-- ✅ MEJORA A11Y: <label> asociado formalmente con for/id -->
         <div class="form-group">
           <label for="book">Libro</label>
           <div class="select-wrapper">
@@ -304,14 +75,14 @@
         </div>
       </div>
 
-      <!-- ✅ MEJORA A11Y: Botones semánticos <button> (no <div onclick>) -->
+      <!-- Botones semánticos -->
       <div class="button-group">
         <button type="button" class="btn-primary" id="displayBtn">Mostrar versículo</button>
         <button type="button" class="btn-secondary" id="randomBtn">🎲 Aleatorio</button>
         <button type="button" class="btn-secondary" id="saveBtn">⭐ Guardar</button>
       </div>
 
-      <!-- ✅ MEJORA A11Y: aria-live="polite" para anunciar cambios -->
+      <!-- Región dinámica accesible -->
       <div
         id="verseDisplay"
         class="verse-display"
@@ -333,12 +104,12 @@
 
   </main>
 
-  <!-- ✅ MEJORA SEMÁNTICA: Landmark <footer> -->
+  <!-- Landmark semántico: footer -->
   <footer class="site-footer">
     <p>Datos incluidos como muestra representativa.</p>
   </footer>
 
-  <!-- ✅ MEJORA RENDIMIENTO: Script con defer (no bloquea el parseo) -->
+  <!-- Script con lógica de la aplicación -->
   <script>
     'use strict';
 
@@ -353,7 +124,7 @@
       'Apocalipsis': { chapters: 22,  vpc: [20,29,22,11,14,17,17,13,21,11,19,17,18,20,8,21,18,24,21,15,27,21] }
     };
 
-    // === REFERENCIAS AL DOM (una sola vez) ===
+    // === REFERENCIAS AL DOM ===
     const bookSelect     = document.getElementById('book');
     const chapterSelect  = document.getElementById('chapter');
     const verseSelect    = document.getElementById('verse');
@@ -365,7 +136,6 @@
     const favoritesList  = document.getElementById('favoritesList');
 
     // === UTILIDADES ===
-    // ✅ MEJORA SEGURIDAD: Limpia opciones usando DOM, sin innerHTML
     function clearSelect(selectEl, placeholder) {
       while (selectEl.firstChild) selectEl.removeChild(selectEl.firstChild);
       const opt = document.createElement('option');
@@ -409,7 +179,6 @@
       verseSelect.appendChild(frag);
     }
 
-    // ✅ MEJORA SEGURIDAD: textContent en lugar de innerHTML (anti-XSS)
     function displayVerse() {
       const { value: book }    = bookSelect;
       const { value: chapter } = chapterSelect;
@@ -444,7 +213,6 @@
       const { value: verse }   = verseSelect;
 
       if (!book || !chapter || !verse) {
-        // ✅ MEJORA UX: Notificación accesible en lugar de alert()
         verseDisplay.textContent = 'Por favor, selecciona un versículo antes de guardar.';
         return;
       }
@@ -472,7 +240,6 @@
     }
 
     // === EVENT LISTENERS ===
-    // ✅ MEJORA SEGURIDAD: Sin onclick inline (permite CSP estricta)
     bookSelect.addEventListener('change', populateChapters);
     chapterSelect.addEventListener('change', populateVerses);
     displayBtn.addEventListener('click', displayVerse);

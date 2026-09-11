@@ -1,39 +1,23 @@
 "use strict";
 
-/* ===== Utilidades generales (sin lógica de la app) ===== */
-
 const $ = (id) => document.getElementById(id);
 
-/** Devuelve un elemento aleatorio de un arreglo. */
-function elegir(arr) {
+function elegirAlAzar(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-/**
- * Crea un elemento con clase y texto de forma SEGURA.
- * Usa textContent en lugar de innerHTML → evita inyección de HTML.
- */
-function crearElemento(etiqueta, clase = "", texto = "") {
-  const el = document.createElement(etiqueta);
-  if (clase) el.className = clase;
-  if (texto) el.textContent = texto;
-  return el;
-}
-
-/** Muestra un aviso en el área de mensajes (tipo: "error" u "ok"). */
-function avisar(mensaje, tipo = "error") {
-  const aviso = $("aviso");
+function avisar(mensaje, esExito = false) {
+  const aviso = $("error"); // Reutilizamos tu div original id="error"
   aviso.textContent = mensaje;
-  aviso.className = "aviso " + tipo;
+  aviso.className = esExito ? "ok" : "error";
 }
 
 function limpiarAviso() {
-  const aviso = $("aviso");
+  const aviso = $("error");
   aviso.textContent = "";
-  aviso.className = "aviso";
+  aviso.className = "error";
 }
 
-/** Lee JSON de localStorage con protección contra datos corruptos. */
 function leerStorage(clave, porDefecto = []) {
   try {
     const crudo = localStorage.getItem(clave);
@@ -43,7 +27,6 @@ function leerStorage(clave, porDefecto = []) {
   }
 }
 
-/** Guarda JSON en localStorage. Devuelve false si falla. */
 function guardarStorage(clave, valor) {
   try {
     localStorage.setItem(clave, JSON.stringify(valor));
@@ -53,7 +36,6 @@ function guardarStorage(clave, valor) {
   }
 }
 
-/** Copia texto al portapapeles, con respaldo para navegadores antiguos. */
 async function copiarAlPortapapeles(texto) {
   if (navigator.clipboard && window.isSecureContext) {
     return navigator.clipboard.writeText(texto);

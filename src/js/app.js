@@ -1,44 +1,20 @@
-/**
- * Controlador Principal del Selector Bíblico
- */
-document.addEventListener('DOMContentLoaded', async () => {
-  // Elementos DOM
+document.addEventListener('DOMContentLoaded', () => {
   const bookSelect = document.getElementById('bookSelect');
   const chapterSelect = document.getElementById('chapterSelect');
   const verseSelect = document.getElementById('verseSelect');
   const verseDisplay = document.getElementById('verseDisplay');
-  const errorMessage = document.getElementById('errorMessage');
   const favList = document.getElementById('favList');
   const themeToggle = document.getElementById('themeToggle');
-  const ayudaLocal = document.getElementById('ayudaLocal');
 
-  const showBtn = document.getElementById('showBtn');
-  const randomBtn = document.getElementById('randomBtn');
-  const copyBtn = document.getElementById('copyBtn');
-  const favBtn = document.getElementById('favBtn');
+  let currentPassage = { book: '', chapter: 1, verse: 1, text: '' };
 
-  // Estado Actual
-  let currentSelection = { book: '', chapter: 1, verse: 1, text: '' };
-
-  // Inicializar Tema
-  const currentTheme = StorageUtil.getTheme();
-  StorageUtil.setTheme(currentTheme);
-  themeToggle.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
-
-  // Cargar Datos
-  try {
-    await BibleRepository.init();
+  function init() {
     populateBooks();
-    renderFavorites();
-  } catch (err) {
-    showError('Error al cargar la base de datos bíblica.');
-    if (window.location.protocol === 'file:') {
-      ayudaLocal.hidden = false;
-    }
-    return;
+    loadFavorites();
+    setupTheme();
+    showCurrentVerse();
   }
 
-  // --- POPULAR SELECTS ---
   function populateBooks() {
     const books = BibleRepository.getBooks();
     bookSelect.innerHTML = books.map(b => `<option value="${b}">${b}</option>`).join('');
@@ -46,105 +22,102 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function updateChapters() {
-    const selectedBook = bookSelect.value;
-    const count = BibleRepository.getChapterCount(selectedBook);
+    const count = BibleRepository.getChapterCount(bookSelect.value);
     chapterSelect.innerHTML = Array.from({ length: count }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
     updateVerses();
   }
 
   function updateVerses() {
-    // Para simplificar la muestra, cargamos hasta 30 versículos por capítulo
     verseSelect.innerHTML = Array.from({ length: 30 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
   }
 
-  // --- RENDERIZADO Y ACCIONES ---
-  function displayVerse(book, chapter, verse) {
-    showError('');
+  function showCurrentVerse() {
+    const book = bookSelect.value;
+    const chapter = parseInt(chapterSelect.value, 10) || 1;
+    const verse = parseInt(verseSelect.value, 10) || 1;
     const text = BibleRepository.getVerseText(book, chapter, verse);
-    currentSelection = { book, chapter, verse, text };
+
+    currentPassage = { book, chapter, verse, text };
 
     verseDisplay.innerHTML = `
-      <p class="verse-text">"${text}"</p>
-      <span class="verse-ref">— ${book} ${chapter}:${verse}</span>
+      <div class="verse-text">"${text}"</div>
+      <div class="verse-ref">— ${book} ${chapter}:${verse}</div>
     `;
   }
 
-  function showError(msg) {
-    errorMessage.textContent = msg;
-  }
-
-  function renderFavorites() {
-    const favs = StorageUtil.getFavorites();
+  function loadFavorites() {
+    const favs = JSON.parse(localStorage.getItem('bible_favs') || '[]');
     if (favs.length === 0) {
-      favList.innerHTML = '<li><em>No hay favoritos guardados.</em></li>';
+      favList.innerHTML = '<li class="fav-item" style="justify-content: center; color: var(--text-secondary);">No hay favoritos guardados.</li>';
       return;
     }
-
     favList.innerHTML = favs.map((item, index) => `
-      <li class="favorite-item">
-        <div>
-          <strong>${item.book} ${item.chapter}:${item.verse}</strong>: "${item.text}"
-        </div>
-        <button type="button" aria-label="Eliminar favorito" data-index="${index}">Eliminar</button>
+      <li class="fav-item">
+        <span><strong>${item.book} ${item.chapter}:${item.verse}</strong> - "${item.text.substring(0, 30)}..."</span>
+        <button type="button" data-index="${index}">Eliminar</button>
       </li>
     `).join('');
 
     favList.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const idx = e.target.getAttribute('data-index');
-        StorageUtil.removeFavorite(idx);
-        renderFavorites();
+        favs.splice(idx, 1);
+        localStorage.setItem('bible_favs', JSON.stringify(favs));
+        loadFavorites();
       });
     });
   }
 
-  // --- EVENT LISTENERS ---
-  bookSelect.addEventListener('change', updateChapters);
-  chapterSelect.addEventListener('change', updateVerses);
+  function setupTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+  }
 
-  showBtn.addEventListener('click', () => {
-    displayVerse(bookSelect.value, parseInt(chapterSelect.value, 10), parseInt(verseSelect.value, 10));
-  });
+  // Eventos de Selectores
+  bookSelect.addEventListener('change', () => { updateChapters(); showCurrentVerse(); });
+  chapterSelect.addEventListener('change', () => { updateVerses(); showCurrentVerse(); });
+  verseSelect.addEventListener('change', showCurrentVerse);
 
-  randomBtn.addEventListener('click', () => {
+  // Eventos de Botones
+  document.getElementById('showBtn').addEventListener('click', showCurrentVerse);
+
+  document.getElementById('randomBtn').addEventListener('click', () => {
     const random = BibleRepository.getRandomPassage();
     bookSelect.value = random.book;
     updateChapters();
     chapterSelect.value = random.chapter;
     updateVerses();
     verseSelect.value = random.verse;
-    displayVerse(random.book, random.chapter, random.verse);
+    showCurrentVerse();
   });
 
-  copyBtn.addEventListener('click', async () => {
-    if (!currentSelection.text) return;
-    const formatted = `"${currentSelection.text}" - ${currentSelection.book} ${currentSelection.chapter}:${currentSelection.verse}`;
-    try {
-      await ClipboardUtil.copyText(formatted);
-      const originalText = copyBtn.textContent;
-      copyBtn.textContent = '¡Copiado! ✓';
-      setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
-    } catch {
-      showError('No se pudo copiar el texto.');
-    }
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    const textToCopy = `"${currentPassage.text}" - ${currentPassage.book} ${currentPassage.chapter}:${currentPassage.verse}`;
+    navigator.clipboard.writeText(textToCopy);
+    const btn = document.getElementById('copyBtn');
+    const prevText = btn.textContent;
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => btn.textContent = prevText, 1500);
   });
 
-  favBtn.addEventListener('click', () => {
-    if (!currentSelection.text) return;
-    const added = StorageUtil.saveFavorite(currentSelection);
-    if (added) {
-      renderFavorites();
-    } else {
-      showError('El versículo ya está en tus favoritos.');
+  document.getElementById('favBtn').addEventListener('click', () => {
+    const favs = JSON.parse(localStorage.getItem('bible_favs') || '[]');
+    const exists = favs.some(f => f.book === currentPassage.book && f.chapter === currentPassage.chapter && f.verse === currentPassage.verse);
+    if (!exists) {
+      favs.push(currentPassage);
+      localStorage.setItem('bible_favs', JSON.stringify(favs));
+      loadFavorites();
     }
   });
 
   themeToggle.addEventListener('click', () => {
-    const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    StorageUtil.setTheme(nextTheme);
-    themeToggle.textContent = nextTheme === 'dark' ? '☀️' : '🌙';
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
   });
 
-  // Mostrar el primer versículo por defecto
-  showBtn.click();
+  init();
 });

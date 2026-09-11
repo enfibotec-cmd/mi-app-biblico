@@ -4,77 +4,60 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="App web segura y offline para consultar versículos bíblicos." />
-  <!-- Seguridad: solo permite recursos del propio sitio; bloquea scripts externos e inline -->
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'" />
+  <!-- Seguridad: previene ejecución de scripts externos o inyectados -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'" />
   <title>Selector Bíblico</title>
-
   <link rel="stylesheet" href="src/styles.css" />
-  <!-- defer: no bloquea la carga de la página y respeta el orden de ejecución -->
+  
+  <!-- defer asegura que el HTML se lea completo antes de ejecutar JS, manteniendo el orden -->
+  <script src="src/js/data.js" defer></script>
   <script src="src/js/utils.js" defer></script>
   <script src="src/js/app.js" defer></script>
 </head>
 <body>
-
   <header>
-    <div class="marca">
-      <h1><span class="ornato">✦</span>Selector Bíblico</h1>
-      <p class="subtitulo">Consulta versículos y guarda tus favoritos — todo sin conexión</p>
-    </div>
-    <button type="button" class="btn secundario" id="themeToggle" aria-label="Cambiar tema">🌙 Oscuro</button>
+    <h1>📖 Selector Bíblico</h1>
+    <button type="button" class="theme-toggle secondary" id="themeToggle" aria-label="Cambiar tema">🌙 Oscuro</button>
   </header>
 
   <main>
-    <!-- Aviso especial si se abre con doble clic (file://) -->
+    <!-- Aviso si se abre con doble clic en local (solo aparece si falla la carga) -->
     <div class="ayuda-local" id="ayudaLocal" hidden>
-      <strong>ℹ️ Uso en local:</strong> al abrir con doble clic, el navegador bloquea la lectura del JSON.
-      Inicia un servidor pequeño dentro de la carpeta del proyecto y abre
-      <code>http://localhost:8000</code>:
-      <br /><br />
-      <code>python -m http.server 8000</code> &nbsp;o&nbsp; <code>npx serve</code>
-      &nbsp;o la extensión <em>Live Server</em> de VS Code.
-      <br /><br />
-      En GitHub Pages esto no ocurre: ahí funciona directamente.
+      <strong>Nota:</strong> Para usar la app en tu computadora debes abrir un servidor local 
+      (ej. <code>python -m http.server 8000</code>). En GitHub Pages funciona directamente.
     </div>
 
     <section class="card" aria-labelledby="sel-h">
-      <h2 id="sel-h"><span class="mini">📖</span> Seleccionar pasaje</h2>
-
+      <h2 id="sel-h">Seleccionar pasaje</h2>
+      
       <div class="controls">
-        <label class="campo">Libro <select id="book"></select></label>
-        <label class="campo">Capítulo <select id="chapter"></select></label>
-        <label class="campo">Versículo <select id="verse"></select></label>
+        <select id="book" aria-label="Libro"></select>
+        <select id="chapter" aria-label="Capítulo"></select>
+        <select id="verse" aria-label="Versículo"></select>
       </div>
 
       <div class="btn-row">
-        <button type="button" id="showBtn" class="btn">Mostrar versículo</button>
-        <button type="button" id="randomBtn" class="btn secundario">🎲 Aleatorio</button>
-        <button type="button" id="copyBtn" class="btn secundario">📋 Copiar</button>
-        <button type="button" id="favBtn" class="btn secundario">⭐ Guardar</button>
+        <button type="button" id="showBtn">Mostrar versículo</button>
+        <button type="button" id="randomBtn" class="secondary">🎲 Aleatorio</button>
+        <button type="button" id="copyBtn" class="secondary">📋 Copiar</button>
+        <button type="button" id="favBtn" class="secondary">⭐ Guardar</button>
       </div>
 
-      <p class="aviso" id="aviso" role="status" aria-live="polite"></p>
-
+      <div class="error" id="error" role="alert" aria-live="polite"></div>
+      
       <div class="verse-display" id="verseDisplay" aria-live="polite">
-        <span class="placeholder">Cargando…</span>
+        Cargando...
       </div>
     </section>
 
     <section class="card" aria-labelledby="fav-h">
-      <h2 id="fav-h"><span class="mini">⭐</span> Favoritos guardados</h2>
+      <h2 id="fav-h">⭐ Favoritos guardados</h2>
       <ul class="favorites" id="favList"></ul>
     </section>
   </main>
 
   <footer>
-    <p class="stats" id="stats"></p>
-    <p>App 100 % local: tus favoritos se guardan solo en este navegador.</p>
+    <p id="stats">Datos incluidos como muestra representativa.</p>
   </footer>
-
-  <noscript>
-    <p style="text-align:center;padding:1rem">
-      Esta aplicación necesita JavaScript y un servidor web (no funciona con doble clic).
-    </p>
-  </noscript>
 </body>
 </html>

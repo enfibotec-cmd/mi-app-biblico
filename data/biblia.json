@@ -1,73 +1,71 @@
 
 {
-  "meta": {
-    "version": "1.0",
-    "fuente": "Muestra representativa (RVR1960)",
-    "actualizado": "2026-09-12",
-    "formato": "libros → capítulos → versículos"
-  },
-  "libros": {
-    "Génesis": {
-      "1": {
-        "1": "En el principio creó Dios los cielos y la tierra.",
-        "3": "Y dijo Dios: Sea la luz; y fue la luz.",
-        "27": "Y creó Dios al hombre a su imagen, a imagen de Dios lo creó; varón y hembra los creó."
-      },
-      "2": {
-        "18": "Y dijo Jehová Dios: No es bueno que el hombre esté solo; le haré ayuda idónea para él."
-      }
-    },
-    "Éxodo": {
-      "14": { "14": "Jehová peleará por vosotros, y vosotros estaréis tranquilos." },
-      "20": { "3": "No tendrás dioses ajenos delante de mí." }
-    },
-    "Josué": {
-      "1": { "9": "Mira que te mando que te esfuerces y seas valiente; no temas ni desmayes, porque Jehová tu Dios estará contigo en dondequiera que vayas." }
-    },
-    "Salmos": {
-      "23": {
-        "1": "Jehová es mi pastor; nada me faltará.",
-        "4": "Aunque ande en valle de sombra de muerte, no temeré mal alguno, porque tú estarás conmigo; tu vara y tu cayado me infundirán aliento."
-      },
-      "27": { "1": "Jehová es mi luz y mi salvación; ¿de quién temeré? Jehová es la fortaleza de mi vida; ¿de quién he de atemorizarme?" },
-      "46": { "1": "Dios es nuestro amparo y fortaleza, nuestro pronto auxilio en las tribulaciones." },
-      "119": { "105": "Lámpara es a mis pies tu palabra, y lumbrera a mi camino." }
-    },
-    "Proverbios": {
-      "3": {
-        "5": "Fíate de Jehová de todo tu corazón, y no te apoyes en tu propia prudencia.",
-        "6": "Reconócelo en todos tus caminos, y él enderezará tus veredas."
-      }
-    },
-    "Isaías": {
-      "40": { "31": "Pero los que esperan a Jehová tendrán nuevas fuerzas; levantarán alas como las águilas; correrán, y no se cansarán; caminarán, y no se fatigarán." },
-      "41": { "10": "No temas, porque yo estoy contigo; no desmayes, porque yo soy tu Dios que te esfuerzo; siempre te ayudaré, siempre te sustentaré con la diestra de mi justicia." }
-    },
-    "Mateo": {
-      "5": { "14": "Vosotros sois la luz del mundo; una ciudad asentada sobre un monte no se puede esconder." },
-      "6": { "33": "Mas buscad primeramente el reino de Dios y su justicia, y todas estas cosas os serán añadidas." },
-      "11": { "28": "Venid a mí todos los que estáis trabajados y cargados, y yo os haré descansar." }
-    },
-    "Juan": {
-      "3": { "16": "Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna." },
-      "8": { "32": "Y conoceréis la verdad, y la verdad os hará libres." },
-      "14": { "6": "Jesús le dijo: Yo soy el camino, y la verdad, y la vida; nadie viene al Padre, sino por mí." }
-    },
-    "Romanos": {
-      "8": { "28": "Y sabemos que a los que aman a Dios, todas las cosas les ayudan a bien, esto es, a los que conforme a su propósito son llamados." },
-      "12": { "2": "No os conforméis a este siglo, sino transformaos por medio de la renovación de vuestro entendimiento, para que comprobéis cuál sea la buena voluntad de Dios, agradable y perfecta." }
-    },
-    "Filipenses": {
-      "4": {
-        "6": "Por nada estéis afanosos, sino sean conocidas vuestras peticiones delante de Dios en toda oración y ruego, con acción de gracias.",
-        "13": "Todo lo puedo en Cristo que me fortalece."
-      }
-    },
-    "1 Juan": {
-      "4": { "19": "Nosotros le amamos a él, porque él nos amó primero." }
-    },
-    "Apocalipsis": {
-      "21": { "4": "Enjugará Dios toda lágrima de los ojos de ellos; y ya no habrá muerte, ni habrá más llanto, ni clamor, ni dolor; porque las primeras cosas pasaron." }
-    }
+  "books": {
+    "Génesis": { "chapters": 50, "sample": { "1-1": "En el principio creó Dios los cielos y la tierra." } },
+    "Éxodo": { "chapters": 40, "sample": { "20-1": "Y habló Dios todas estas palabras, diciendo:" } },
+    "Levítico": { "chapters": 27, "sample": { "19-18": "Amarás a tu prójimo como a ti mismo." } },
+    "Números": { "chapters": 36, "sample": { "6-24": "Jehová te bendiga y te guarde." } },
+    "Deuteronomio": { "chapters": 34, "sample": { "6-5": "Amarás a Jehová tu Dios con todo tu corazón." } },
+    "Josué": { "chapters": 24, "sample": { "1-9": "Mira que te mando que te esfuerces y seas valiente." } },
+    "Jueces": { "chapters": 21, "sample": { "6-12": "Jehová está contigo, varón esforzado y valiente." } },
+    "Rut": { "chapters": 4, "sample": { "1-16": "Donde tú vayas, iré yo; y donde tú vivas, viviré yo." } },
+    "1 Samuel": { "chapters": 31, "sample": { "16-7": "Jehová mira el corazón." } },
+    "2 Samuel": { "chapters": 24, "sample": { "22-3": "Escudo mío eres, y el cuerno de mi salvación." } },
+    "1 Reyes": { "chapters": 22, "sample": { "3-9": "Da, pues, a tu siervo corazón entendido." } },
+    "2 Reyes": { "chapters": 25, "sample": { "19-19": "Ahora pues, Jehová Dios nuestro, sálvanos de su mano." } },
+    "1 Crónicas": { "chapters": 29, "sample": { "16-34": "Dad gracias a Jehová, porque él es bueno." } },
+    "2 Crónicas": { "chapters": 36, "sample": { "7-14": "Si se humillare mi pueblo... yo oiré desde los cielos." } },
+    "Esdras": { "chapters": 10, "sample": { "3-11": "Porque él es bueno, porque su misericordia es eterna." } },
+    "Nehemías": { "chapters": 13, "sample": { "8-10": "El gozo de Jehová es vuestra fuerza." } },
+    "Ester": { "chapters": 10, "sample": { "4-14": "¿Y quién sabe si para esta hora has llegado al reino?" } },
+    "Job": { "chapters": 42, "sample": { "19-25": "Yo sé que mi Redentor vive." } },
+    "Salmos": { "chapters": 150, "sample": { "23-1": "Jehová es mi pastor, nada me faltará." } },
+    "Proverbios": { "chapters": 31, "sample": { "3-5": "Fíate de Jehová de todo tu corazón." } },
+    "Eclesiastés": { "chapters": 12, "sample": { "3-1": "Todo tiene su tiempo, y todo lo que se quiere debajo del cielo tiene su hora." } },
+    "Cantares": { "chapters": 8, "sample": { "2-4": "Su bandera sobre mí es amor." } },
+    "Isaías": { "chapters": 66, "sample": { "40-31": "Los que esperan a Jehová tendrán nuevas fuerzas." } },
+    "Jeremías": { "chapters": 52, "sample": { "29-11": "Yo sé los pensamientos que tengo acerca de vosotros, pensamientos de paz." } },
+    "Lamentaciones": { "chapters": 5, "sample": { "3-22": "Por la misericordia de Jehová no hemos sido consumidos." } },
+    "Ezequiel": { "chapters": 48, "sample": { "37-14": "Y pondré mi Espíritu en vosotros, y viviréis." } },
+    "Daniel": { "chapters": 12, "sample": { "3-17": "He aquí nuestro Dios a quien servimos puede librarnos." } },
+    "Oseas": { "chapters": 14, "sample": { "6-3": "Conoceremos, y proseguiremos en conocer a Jehová." } },
+    "Joel": { "chapters": 3, "sample": { "2-13": "Rasgad vuestro corazón, y no vuestros vestidos." } },
+    "Amós": { "chapters": 9, "sample": { "5-24": "Pero corra el juicio como las aguas, y la justicia como arroyo impetuoso." } },
+    "Abdías": { "chapters": 1, "sample": { "1-4": "Aunque te remontes como águila, de allí serás derribado." } },
+    "Jonás": { "chapters": 4, "sample": { "2-2": "Clamé en mi angustia a Jehová, y él me oyó." } },
+    "Miqueas": { "chapters": 7, "sample": { "6-8": "Hacer justicia, y amar misericordia, y humillarte ante tu Dios." } },
+    "Nahúm": { "chapters": 3, "sample": { "1-7": "Jehová es bueno, fortaleza en el día de la angustia." } },
+    "Habacuc": { "chapters": 3, "sample": { "2-4": "El justo por su fe vivirá." } },
+    "Sofonías": { "chapters": 3, "sample": { "3-17": "Jehová está en medio de ti, poderoso, él salvará." } },
+    "Hageo": { "chapters": 2, "sample": { "2-9": "La gloria postrera de esta casa será mayor que la primera." } },
+    "Zacarías": { "chapters": 14, "sample": { "4-6": "No con ejército, ni con fuerza, sino con mi Espíritu." } },
+    "Malaquías": { "chapters": 4, "sample": { "3-10": "Probadme ahora en esto, dice Jehová de los ejércitos." } },
+    "Mateo": { "chapters": 28, "sample": { "5-16": "Así alumbre vuestra luz delante de los hombres." } },
+    "Marcos": { "chapters": 16, "sample": { "10-27": "Para Dios todas las cosas son posibles." } },
+    "Lucas": { "chapters": 24, "sample": { "6-31": "Como queréis que hagan los hombres con vosotros, así haced vosotros con ellos." } },
+    "Juan": { "chapters": 21, "sample": { "3-16": "Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito." } },
+    "Hechos": { "chapters": 28, "sample": { "1-8": "Recibiréis poder, cuando haya venido sobre vosotros el Espíritu Santo." } },
+    "Romanos": { "chapters": 16, "sample": { "8-28": "A los que aman a Dios, todas las cosas les ayudan a bien." } },
+    "1 Corintios": { "chapters": 16, "sample": { "13-4": "El amor es sufrido, es benigno." } },
+    "2 Corintios": { "chapters": 13, "sample": { "5-17": "Si alguno está en Cristo, nueva criatura es." } },
+    "Gálatas": { "chapters": 6, "sample": { "5-22": "El fruto del Espíritu es amor, gozo, paz..." } },
+    "Efesios": { "chapters": 6, "sample": { "2-8": "Por gracia sois salvos por medio de la fe." } },
+    "Filipenses": { "chapters": 4, "sample": { "4-13": "Todo lo puedo en Cristo que me fortalece." } },
+    "Colosenses": { "chapters": 4, "sample": { "3-23": "Todo lo que hagáis, hacedlo de corazón." } },
+    "1 Tesalonicenses": { "chapters": 5, "sample": { "5-17": "Orad sin cesar." } },
+    "2 Tesalonicenses": { "chapters": 3, "sample": { "3-10": "Si alguno no quiere trabajar, tampoco coma." } },
+    "1 Timoteo": { "chapters": 6, "sample": { "4-12": "Sé ejemplo de los creyentes." } },
+    "2 Timoteo": { "chapters": 4, "sample": { "1-7": "Dios nos ha dado espíritu de poder, de amor y de dominio propio." } },
+    "Tito": { "chapters": 3, "sample": { "2-11": "La gracia de Dios se ha manifestado para salvación." } },
+    "Filemón": { "chapters": 1, "sample": { "1-6": "La participación de tu fe sea eficaz." } },
+    "Hebreos": { "chapters": 13, "sample": { "11-1": "Es, pues, la fe la certeza de lo que se espera." } },
+    "Santiago": { "chapters": 5, "sample": { "1-5": "Si alguno de vosotros tiene falta de sabiduría, pídala a Dios." } },
+    "1 Pedro": { "chapters": 5, "sample": { "5-7": "Echad toda vuestra ansiedad sobre él, porque él tiene cuidado de vosotros." } },
+    "2 Pedro": { "chapters": 3, "sample": { "3-9": "El Señor no retarda su promesa, sino que es paciente." } },
+    "1 Juan": { "chapters": 5, "sample": { "4-8": "Dios es amor." } },
+    "2 Juan": { "chapters": 1, "sample": { "1-4": "Me regocijé mucho... andando en la verdad." } },
+    "3 Juan": { "chapters": 1, "sample": { "1-4": "No tengo mayor gozo que oír que mis hijos andan en la verdad." } },
+    "Judas": { "chapters": 1, "sample": { "1-24": "A aquel que es poderoso para guardaros sin caída." } },
+    "Apocalipsis": { "chapters": 22, "sample": { "3-20": "He aquí, yo estoy a la puerta y llamo." } }
   }
 }

@@ -1,73 +1,73 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#6366f1" />
-  <title>📖 Selector Bíblico</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="App web segura y offline para consultar versículos bíblicos." />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'" />
+  <title>Selector Bíblico</title>
   <link rel="stylesheet" href="scr/styles.css" />
+  
+  <script src="js/data.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/app.js" defer></script>
 </head>
 <body>
-  <button type="button" class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">
-    <span class="theme-icon">🌙</span>
-  </button>
-
   <header class="site-header">
     <h1>📖 Selector Bíblico</h1>
-    <p class="site-subtitle">Busca, copia y guarda tus versículos favoritos</p>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Cambiar tema">🌙</button>
   </header>
 
   <main class="main-content">
-    <form id="verseForm" class="verse-form" novalidate>
+    <div class="ayuda-local" id="ayudaLocal" hidden>
+      <strong>Nota:</strong> Para usar la app localmente debes servirla mediante un servidor HTTP local (ej. <code>python -m http.server 8000</code>).
+    </div>
+
+    <section class="card" aria-labelledby="sel-h">
+      <h2 id="sel-h">Seleccionar pasaje</h2>
+      
       <div class="select-grid">
-        <div class="form-group">
-          <label for="book">Libro</label>
-          <select id="book" required>
-            <option value="">Cargando libros…</option>
-          </select>
+        <div class="select-wrapper">
+          <label for="bookSelect">Libro</label>
+          <select id="bookSelect"></select>
+          <span class="select-arrow">▼</span>
+        </div>
+        
+        <div class="select-wrapper">
+          <label for="chapterSelect">Capítulo</label>
+          <select id="chapterSelect"></select>
+          <span class="select-arrow">▼</span>
         </div>
 
-        <div class="form-group">
-          <label for="chapter">Capítulo</label>
-          <select id="chapter" required disabled>
-            <option value="">—</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="verse">Versículo</label>
-          <select id="verse" required disabled>
-            <option value="">—</option>
-          </select>
+        <div class="select-wrapper">
+          <label for="verseSelect">Versículo</label>
+          <select id="verseSelect"></select>
+          <span class="select-arrow">▼</span>
         </div>
       </div>
 
       <div class="button-group">
-        <button type="submit" class="btn-primary">📖 Mostrar</button>
-        <button type="button" class="btn-secondary" id="btnRandom">🎲 Aleatorio</button>
-        <button type="button" class="btn-secondary" id="btnCopy" disabled>📋 Copiar</button>
-        <button type="button" class="btn-secondary" id="btnFavorite" disabled>⭐ Guardar</button>
+        <button type="button" id="showBtn" class="btn-primary">Mostrar versículo</button>
+        <button type="button" id="randomBtn" class="btn-secondary">🎲 Aleatorio</button>
+        <button type="button" id="copyBtn" class="btn-secondary">📋 Copiar</button>
+        <button type="button" id="favBtn" class="btn-secondary">⭐ Guardar</button>
       </div>
-    </form>
 
-    <section class="verse-display" id="verseDisplay" aria-live="polite">
-      <p class="verse-placeholder">Selecciona un pasaje para ver el versículo</p>
+      <div class="error-message" id="errorMessage" role="alert" aria-live="polite"></div>
+      
+      <div class="verse-display" id="verseDisplay" aria-live="polite">
+        Selecciona un pasaje o presiona "Mostrar versículo".
+      </div>
     </section>
 
-    <section class="favorites-section">
-      <h2>⭐ Favoritos guardados</h2>
-      <ul class="favorites-list" id="favoritesList">
-        <li class="empty-state">Aún no has guardado ningún versículo.</li>
-      </ul>
+    <section class="card favorites-section" aria-labelledby="fav-h">
+      <h2 id="fav-h">⭐ Favoritos guardados</h2>
+      <ul class="favorites-list" id="favList"></ul>
     </section>
   </main>
 
-  <div class="toast" id="toast" hidden><span id="toastMsg"></span></div>
-
   <footer class="site-footer">
-    <small>Datos de muestra representativa · Hecho con ❤️</small>
+    <p id="stats">Muestra representativa de textos bíblicos.</p>
   </footer>
-
-  <script src="scr/js/app.js" defer></script>
 </body>
 </html>

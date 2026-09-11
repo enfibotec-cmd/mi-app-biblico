@@ -1,51 +1,60 @@
-"use strict";
+/**
+ * Utilidades de UI y Persistencia
+ */
+const StorageUtil = {
+  getTheme() {
+    return localStorage.getItem('theme') || 
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  },
 
-const $ = (id) => document.getElementById(id);
+  setTheme(theme) {
+    localStorage.setItem('theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+  },
 
-function elegirAlAzar(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+  getFavorites() {
+    try {
+      return JSON.parse(localStorage.getItem('bible_favorites')) || [];
+    } catch {
+      return [];
+    }
+  },
 
-function avisar(mensaje, esExito = false) {
-  const aviso = $("error"); // Reutilizamos tu div original id="error"
-  aviso.textContent = mensaje;
-  aviso.className = esExito ? "ok" : "error";
-}
-
-function limpiarAviso() {
-  const aviso = $("error");
-  aviso.textContent = "";
-  aviso.className = "error";
-}
-
-function leerStorage(clave, porDefecto = []) {
-  try {
-    const crudo = localStorage.getItem(clave);
-    return crudo === null ? porDefecto : JSON.parse(crudo);
-  } catch {
-    return porDefecto;
-  }
-}
-
-function guardarStorage(clave, valor) {
-  try {
-    localStorage.setItem(clave, JSON.stringify(valor));
-    return true;
-  } catch {
+  saveFavorite(item) {
+    const favorites = this.getFavorites();
+    const exists = favorites.some(
+      f => f.book === item.book && f.chapter === item.chapter && f.verse === item.verse
+    );
+    
+    if (!exists) {
+      favorites.push(item);
+      localStorage.setItem('bible_favorites', JSON.stringify(favorites));
+      return true;
+    }
     return false;
-  }
-}
+  },
 
-async function copiarAlPortapapeles(texto) {
-  if (navigator.clipboard && window.isSecureContext) {
-    return navigator.clipboard.writeText(texto);
+  removeFavorite(index) {
+    const favorites = this.getFavorites();
+    favorites.splice(index, 1);
+    localStorage.setItem('bible_favorites', JSON.stringify(favorites));
   }
-  const area = document.createElement("textarea");
-  area.value = texto;
-  area.style.position = "fixed";
-  area.style.opacity = "0";
-  document.body.appendChild(area);
-  area.select();
-  try { document.execCommand("copy"); }
-  finally { area.remove(); }
-}
+};
+
+const ClipboardUtil = {
+  async copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+  }
+};

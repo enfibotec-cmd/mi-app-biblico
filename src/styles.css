@@ -1,225 +1,155 @@
+/* ==========================================================================
+   VARIABLES Y TEMAS (Light / Dark)
+   ========================================================================== */
 :root {
-  --bg-primary: #f3f4f6;
+  --bg-main: #f3f4f6;
   --bg-card: #ffffff;
-  --text-primary: #1f2937;
-  --text-secondary: #4b5563;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --border: #e5e7eb;
+  --text-main: #1f2937;
+  --text-muted: #4b5563;
+  --border-color: #d1d5db;
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --focus-ring: rgba(37, 99, 235, 0.2);
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --radius: 12px;
 }
 
 [data-theme="dark"] {
-  --bg-primary: #111827;
+  --bg-main: #111827;
   --bg-card: #1f2937;
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
-  --accent: #6366f1;
-  --accent-hover: #4f46e5;
-  --border: #374151;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --border-color: #374151;
+  --primary-color: #3b82f6;
+  --primary-hover: #60a5fa;
+  --focus-ring: rgba(59, 130, 246, 0.3);
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
 }
 
-*, *::before, *::after {
+/* ==========================================================================
+   RESET Y ESTRUCTURA BASE
+   ========================================================================== */
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body {
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
 body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   line-height: 1.5;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.main-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
 .site-header {
-  width: 100%;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  padding: 1rem 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 0.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .site-header h1 {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
+  color: var(--text-main);
 }
 
-.main-container {
-  width: 100%;
-  max-width: 680px;
-  padding: 1.5rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.theme-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  font-size: 1.25rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
+.theme-btn:hover {
+  background-color: var(--border-color);
+}
+
+/* ==========================================================================
+   TARJETA Y FORMULARIO
+   ========================================================================== */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 1.5rem;
   box-shadow: var(--shadow);
-  width: 100%;
+  margin-bottom: 1.5rem;
 }
 
 .card h2 {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   margin-bottom: 1rem;
+  color: var(--text-main);
 }
 
 .select-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
 .select-group {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.5rem;
 }
 
 .select-group label {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
+/* FIX: Contraste total para elementos select y sus opciones en Dark Mode */
 select {
   width: 100%;
-  padding: 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
   background-color: var(--bg-card);
-  color: var(--text-primary);
-  font-size: 0.95rem;
-}
-
-.button-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-}
-
-button {
-  padding: 0.65rem 0.85rem;
-  border: 1px solid var(--border);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  outline: none;
   cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Forzar color de fondo y texto dentro de las opciones desplegables */
+select option {
   background-color: var(--bg-card);
-  color: var(--text-primary);
-  transition: opacity 0.15s ease;
+  color: var(--text-main);
 }
 
-button:hover {
-  opacity: 0.9;
-}
-
-.btn-primary {
-  background-color: var(--accent);
-  color: #ffffff;
-  border: none;
-}
-
-.verse-box {
-  background-color: var(--bg-primary);
-  border-left: 4px solid var(--accent);
-  padding: 1.25rem;
-  border-radius: 6px;
-  min-height: 100px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.verse-text {
-  font-size: 1.05rem;
-  font-style: italic;
-}
-
-.verse-ref {
-  margin-top: 0.5rem;
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: var(--accent);
-}
-
-.fav-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.fav-item {
-  background: var(--bg-primary);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-}
-
-.fav-item button {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  color: #ef4444;
-  border-color: #ef4444;
-}
-
-.theme-btn {
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.site-footer {
-  width: 100%;
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-@media (max-width: 480px) {
-  .select-grid {
-    grid-template-columns: 1fr;
-  }
-  .button-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-/* Utilidades visuales de estado */
-.hidden {
-  display: none !important;
-}
-
-/* Banner de Estado / Error UI */
+/* ==========================================================================
+   ESTADOS DE ERROR Y MUESTRA EN PANTALLA (Salida Abajo)
+   ========================================================================== */
 .status-banner {
   padding: 0.875rem 1rem;
   border-radius: 8px;
@@ -232,30 +162,35 @@ button:hover {
 }
 
 .status-banner.error {
-  background-color: rgba(220, 38, 38, 0.1);
-  border: 1px solid rgba(220, 38, 38, 0.3);
-  color: #b91c1c;
+  background-color: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: #ef4444;
 }
 
 .retry-btn {
-  background-color: #b91c1c;
+  background-color: #dc2626;
   color: #ffffff;
   border: none;
-  padding: 0.375rem 0.75rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 6px;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s ease;
 }
 
-.retry-btn:hover {
-  opacity: 0.9;
+.passage-display {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
 }
 
-/* Selectores deshabilitados */
-select:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background-color: rgba(0, 0, 0, 0.05);
+.passage-display h3 {
+  color: var(--primary-color);
+  margin-bottom: 0.75rem;
+}
+
+.hidden {
+  display: none !important;
 }

@@ -1,7 +1,9 @@
 'use strict'; // Forzamos modo estricto para capturar errores silenciosos
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. VALIDACIÓN DE DEPENDENCIAS DOM (ID-02)
+  // ==========================================
+  // 1. VALIDACIÓN DE DEPENDENCIAS DOM
+  // ==========================================
   const elements = {
     bookSelect: document.getElementById('bookSelect'),
     chapterSelect: document.getElementById('chapterSelect'),
@@ -11,17 +13,18 @@ document.addEventListener('DOMContentLoaded', () => {
     passageDisplay: document.getElementById('passageDisplay')
   };
 
-  // Si faltan elementos críticos, detenemos la ejecución de forma controlada
+  // Detenemos la ejecución si faltan nodos estructurales clave
   if (!elements.bookSelect || !elements.chapterSelect || !elements.verseSelect) {
-    console.error('[Biblia App] Faltan elementos críticos del DOM. Verifica el HTML.');
+    console.error('[Biblia App] Faltan elementos críticos del DOM. Verifica la plantilla HTML.');
     return;
   }
 
   let booksList = [];
-  const DEFAULT_VERSE_FALLBACK = 50; // (ID-04) Constante en lugar de número mágico
+  let booksMap = new Map(); // Indexación O(1) para búsqueda rápida de libros por ID/código
+  const DEFAULT_VERSE_FALLBACK = 50;
 
   // ==========================================
-  // 1. GESTIÓN DE MODO OSCURO (Dark Mode)
+  // 2. GESTIÓN DE MODO OSCURO (Con soporte A11y)
   // ==========================================
   const savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -30,21 +33,23 @@ document.addEventListener('DOMContentLoaded', () => {
   elements.themeToggle?.addEventListener('click', () => {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
+
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     updateThemeIcon(newTheme);
   });
 
   function updateThemeIcon(theme) {
-    if (elements.themeToggle) {
-      // textContent es seguro contra XSS
-      elements.themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-    }
+    if (!elements.themeToggle) return;
+    const isDark = theme === 'dark';
+
+    elements.themeToggle.textContent = isDark ? '☀️' : '🌙';
+    elements.themeToggle.setAttribute('aria-label', isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+    elements.themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
   }
 
   // ==========================================
-  // 2. CARGA DE DATOS BÍBLICOS CON CONTROL DE CACHÉ
+  // 3. CARGA DE DATOS BÍBLICOS CON CACHÉ
   // ==========================================
   async function loadManifest() {
     setLoadingState();
@@ -57,32 +62,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await response.json();
 
+      let rawBooks = [];
       if (Array.isArray(data.books)) {
-        booksList = data.books;
+        rawBooks = data.books;
       } else if (typeof data.books === 'object' && data.books !== null) {
-        booksList = Object.entries(data.books).map(([key, value]) => ({
+        rawBooks = Object.entries(data.books).map(([key, value]) => ({
           id: key,
           ...value
         }));
       }
 
-      if (!booksList.length) throw new Error('El manifest no contiene libros.');
+      if (!rawBooks.length) throw new Error('El manifest no contiene libros válidos.');
+
+      // Búsqueda instantánea O(1)
+      booksMap = new Map(rawBooks.map(b => [b.id || b.code, b]));
+      booksList = Array.from(booksMap.values());
 
       clearStatus();
       populateBooks();
 
     } catch (error) {
-      console.error('[Biblia App] Error cargando manifest:', error);
+      console.error('[Biblia App] Error al cargar manifest:', error);
       showError('Error al cargar la lista de libros. Revisa la ruta de manifest.json.', loadManifest);
     }
   }
 
   // ==========================================
-  // 3. POBLADO Y ACTUALIZACIÓN DE SELECTORES
+  // 4. POBLADO Y ACTUALIZACIÓN DE SELECTORES
   // ==========================================
   function populateBooks() {
-    elements.bookSelect.replaceChildren();
-    elements.bookSelect.appendChild(new Option('-- Seleccionar Libro --', ''));
+    elements.bookSelect.replaceChildren(new Option('-- Seleccionar Libro --', ''));
 
     const groupOT = document.createElement('optgroup');
     groupOT.label = '— Antiguo Testamento —';
@@ -90,9 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
     groupNT.label = '— Nuevo Testamento —';
 
     booksList.forEach(b => {
-      // new Option escapa automáticamente el texto, previniendo XSS en el select
+      // new Option escapa automáticamente el texto para prevenir XSS
       const option = new Option(b.name, b.id || b.code);
-      
+
       if (b.testament === 'OT') groupOT.appendChild(option);
       else if (b.testament === 'NT') groupNT.appendChild(option);
       else elements.bookSelect.appendChild(option);
@@ -107,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateChapters() {
     const selectedBookId = elements.bookSelect.value;
 
-    // (ID-03) Evitar renderizado innecesario si no hay selección válida
     if (!selectedBookId) {
       resetSelect(elements.chapterSelect, 'Selecciona un libro');
       resetSelect(elements.verseSelect, 'Selecciona un capítulo');
@@ -115,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const book = booksList.find(b => (b.id || b.code) === selectedBookId);
+    const book = booksMap.get(selectedBookId);
     const totalChapters = book?.chapters || book?.chapterCount || 0;
 
     if (totalChapters === 0) {
@@ -130,9 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.chapterSelect.replaceChildren(defaultOpt, ...options);
     elements.chapterSelect.disabled = false;
     resetSelect(elements.verseSelect, 'Selecciona un capítulo');
-    
-    // Renderizar solo cuando hay una selección válida
-    renderPassage(); 
+
+    renderPassage();
   }
 
   function updateVerses() {
@@ -147,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const chapterNum = parseInt(chapterVal, 10);
     const chapterIdx = chapterNum - 1;
-    const book = booksList.find(b => (b.id || b.code) === selectedBookId);
+    const book = booksMap.get(selectedBookId);
 
     if (!book) {
       resetSelect(elements.verseSelect, 'Error de libro');
@@ -172,17 +179,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     elements.verseSelect.replaceChildren(defaultOpt, ...options);
     elements.verseSelect.disabled = false;
-    
+
     renderPassage();
   }
 
   // ==========================================
-  // 4. MUESTRA EN PANTALLA (Salida Inferior)
+  // 5. RENDERIZADO SEGURO EN PANTALLA
   // ==========================================
   function clearPassageDisplay() {
     if (elements.passageDisplay) {
       elements.passageDisplay.classList.add('hidden');
-      elements.passageDisplay.innerHTML = ''; // Limpiar de forma segura
+      elements.passageDisplay.replaceChildren();
     }
   }
 
@@ -198,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const book = booksList.find(b => (b.id || b.code) === bookId);
+    const book = booksMap.get(bookId);
     if (!book) return;
 
     const testamentName = book.testament === 'OT' 
@@ -209,9 +216,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chapter) titleText += ` ${chapter}`;
     if (verse) titleText += `:${verse}`;
 
-    // (ID-01) REFACTORIZACIÓN CRÍTICA: Construcción segura del DOM sin innerHTML
+    // Construcción del DOM 100% libre de innerHTML
     elements.passageDisplay.classList.remove('hidden');
-    elements.passageDisplay.innerHTML = ''; // Limpiar contenido previo
+    elements.passageDisplay.replaceChildren();
 
     const badgeContainer = document.createElement('div');
     badgeContainer.style.marginBottom = '0.5rem';
@@ -219,31 +226,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (testamentName) {
       const badge = document.createElement('span');
       badge.className = 'badge';
-      badge.textContent = testamentName; // textContent previene XSS
+      badge.textContent = testamentName;
       badgeContainer.appendChild(badge);
     }
 
     if (book.category) {
       const badge = document.createElement('span');
       badge.className = 'badge muted';
-      badge.textContent = book.category; // textContent previene XSS
+      badge.textContent = book.category;
       badgeContainer.appendChild(badge);
     }
 
-    elements.passageDisplay.appendChild(badgeContainer);
-
     const titleEl = document.createElement('h3');
-    titleEl.textContent = titleText; // textContent previene XSS
-    elements.passageDisplay.appendChild(titleEl);
+    titleEl.textContent = titleText;
 
     const infoEl = document.createElement('p');
     infoEl.style.color = 'var(--text-muted)';
     infoEl.textContent = 'Pasaje seleccionado correctamente.';
-    elements.passageDisplay.appendChild(infoEl);
+
+    elements.passageDisplay.append(badgeContainer, titleEl, infoEl);
   }
 
   // ==========================================
-  // 5. FUNCIONES AUXILIARES Y EVENTOS
+  // 6. MANEJO DE ESTADOS Y BANNERS DE ERROR
   // ==========================================
   function resetSelect(selectEl, placeholder) {
     if (!selectEl) return;
@@ -259,30 +264,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showError(message, retryFn) {
     if (!elements.statusBanner) return;
-    
-    elements.statusBanner.className = 'status-banner error';
-    // (ID-05) Uso seguro de textContent para el mensaje, solo innerHTML para la estructura estática
-    elements.statusBanner.innerHTML = `<span id="errorMessage"></span><button type="button" class="retry-btn" id="retryBtn">Reintentar</button>`;
-    
-    const errorSpan = elements.statusBanner.querySelector('#errorMessage');
-    if (errorSpan) errorSpan.textContent = `⚠️ ${message}`; // Sanitización
 
+    elements.statusBanner.className = 'status-banner error';
+    elements.statusBanner.replaceChildren();
+
+    const errorSpan = document.createElement('span');
+    errorSpan.textContent = `⚠️ ${message}`;
+
+    const retryBtn = document.createElement('button');
+    retryBtn.type = 'button';
+    retryBtn.className = 'retry-btn';
+    retryBtn.textContent = 'Reintentar';
+    retryBtn.addEventListener('click', retryFn, { once: true });
+
+    elements.statusBanner.append(errorSpan, retryBtn);
     elements.statusBanner.classList.remove('hidden');
-    document.getElementById('retryBtn')?.addEventListener('click', retryFn);
   }
 
   function clearStatus() {
     if (elements.statusBanner) {
       elements.statusBanner.classList.add('hidden');
-      elements.statusBanner.innerHTML = '';
+      elements.statusBanner.replaceChildren();
     }
   }
 
-  // Escuchadores de eventos (Protegidos por la validación inicial del DOM)
+  // ==========================================
+  // 7. ESCUCHADORES DE EVENTOS
+  // ==========================================
   elements.bookSelect.addEventListener('change', updateChapters);
   elements.chapterSelect.addEventListener('change', updateVerses);
   elements.verseSelect.addEventListener('change', renderPassage);
 
-  // Carga inicial
+  // Inicialización
   loadManifest();
 });

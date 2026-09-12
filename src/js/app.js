@@ -31,19 +31,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 2. CARGA DE DATOS BIBLÍCOS CON CONTROL DE CACHÉ
+  // 2. CARGA DE DATOS BÍBLICOS CON CONTROL DE CACHÉ
   // ==========================================
   async function loadManifest() {
     setLoadingState();
 
     try {
-      // Se añade timestamp para evitar que el navegador use un manifest.json viejo en caché
+      // Prevención de caché mediante query param del timestamp
       const response = await fetch(`./data/manifest.json?v=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
 
-      // Mapeo flexible: soporta si "books" es un Objeto o un Array
+      // Compatibilidad si "books" es Objeto o Array
       if (Array.isArray(data.books)) {
         booksList = data.books;
       } else if (typeof data.books === 'object' && data.books !== null) {
@@ -68,10 +68,33 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. POBLADO Y ACTUALIZACIÓN DE SELECTORES
   // ==========================================
   function populateBooks() {
-    const defaultOpt = new Option('-- Seleccionar Libro --', '');
-    const options = booksList.map(b => new Option(b.name, b.id || b.code));
+    bookSelect.replaceChildren();
 
-    bookSelect.replaceChildren(defaultOpt, ...options);
+    const defaultOpt = new Option('-- Seleccionar Libro --', '');
+    bookSelect.appendChild(defaultOpt);
+
+    // Grupos visuales para Antiguo y Nuevo Testamento
+    const groupOT = document.createElement('optgroup');
+    groupOT.label = '— Antiguo Testamento —';
+
+    const groupNT = document.createElement('optgroup');
+    groupNT.label = '— Nuevo Testamento —';
+
+    booksList.forEach(b => {
+      const option = new Option(b.name, b.id || b.code);
+      
+      if (b.testament === 'OT') {
+        groupOT.appendChild(option);
+      } else if (b.testament === 'NT') {
+        groupNT.appendChild(option);
+      } else {
+        bookSelect.appendChild(option);
+      }
+    });
+
+    if (groupOT.children.length > 0) bookSelect.appendChild(groupOT);
+    if (groupNT.children.length > 0) bookSelect.appendChild(groupNT);
+
     bookSelect.disabled = false;
   }
 
@@ -100,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     chapterSelect.replaceChildren(defaultOpt, ...options);
     chapterSelect.disabled = false;
 
-    // Reiniciar versículos al cambiar de libro
     resetSelect(verseSelect, 'Selecciona un capítulo');
   }
 
@@ -115,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const chapterNum = parseInt(chapterVal, 10);
-    const chapterIdx = chapterNum - 1; // Índice base 0
+    const chapterIdx = chapterNum - 1;
 
     const book = booksList.find(b => (b.id || b.code) === selectedBookId);
 
@@ -126,14 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let totalVerses = 0;
 
-    // 1. Intentar obtener el conteo exacto desde el arreglo verseCounts
+    // 1. Obtener conteo exacto de verseCounts
     if (Array.isArray(book.verseCounts) && book.verseCounts[chapterIdx] !== undefined) {
       totalVerses = book.verseCounts[chapterIdx];
     } 
-    // 2. FALLBACK: Si no existe verseCounts en el JSON, asigna un número por defecto para no bloquear la interfaz
+    // 2. Fallback de respaldo si verseCounts no viene informado
     else {
-      console.warn(`[Biblia] 'verseCounts' no encontrado para ${book.name} (Cap. ${chapterNum}). Aplicando respaldo de 50 versículos.`);
-      totalVerses = 50; 
+      console.warn(`[Biblia] 'verseCounts' no encontrado para ${book.name} (Cap. ${chapterNum}). Respaldo: 50 versículos.`);
+      totalVerses = 50;
     }
 
     if (totalVerses <= 0) {
@@ -164,13 +186,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const book = booksList.find(b => (b.id || b.code) === bookId);
-    let titleText = `${book?.name || ''}`;
-    
+    if (!book) return;
+
+    const testamentName = book.testament === 'OT' 
+      ? 'Antiguo Testamento' 
+      : (book.testament === 'NT' ? 'Nuevo Testamento' : '');
+
+    let titleText = `${book.name}`;
     if (chapter) titleText += ` ${chapter}`;
     if (verse) titleText += `:${verse}`;
 
     passageDisplay.classList.remove('hidden');
     passageDisplay.innerHTML = `
+      <div style="margin-bottom: 0.5rem;">
+        ${testamentName ? `<span class="badge">${testamentName}</span>` : ''}
+        ${book.category ? `<span class="badge muted">${book.category}</span>` : ''}
+      </div>
       <h3>${titleText}</h3>
       <p style="color: var(--text-muted)">Pasaje seleccionado correctamente.</p>
     `;
@@ -211,6 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
   chapterSelect.addEventListener('change', updateVerses);
   verseSelect.addEventListener('change', renderPassage);
 
-  // Iniciar la carga
+  // Carga inicial
   loadManifest();
 });

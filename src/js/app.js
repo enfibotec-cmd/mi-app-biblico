@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
   const bookSelect = document.getElementById('bookSelect');
   const chapterSelect = document.getElementById('chapterSelect');
@@ -10,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let booksList = [];
 
   // ==========================================
-  // GESTIÓN DE MODO OSCURO (Dark Mode)
+  // 1. GESTIÓN DE MODO OSCURO (Dark Mode)
   // ==========================================
   const savedTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -32,18 +31,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // CARGA DE DATOS BIBLÍCOS
+  // 2. CARGA DE DATOS BIBLÍCOS CON CONTROL DE CACHÉ
   // ==========================================
   async function loadManifest() {
     setLoadingState();
 
     try {
-      const response = await fetch('./data/manifest.json', { cache: 'force-cache' });
+      // Se añade timestamp para evitar que el navegador use un manifest.json viejo en caché
+      const response = await fetch(`./data/manifest.json?v=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
 
-      // FIX CLAVE: Si data.books es Objeto, extraer llaves para no perder "id"
+      // Mapeo flexible: soporta si "books" es un Objeto o un Array
       if (Array.isArray(data.books)) {
         booksList = data.books;
       } else if (typeof data.books === 'object' && data.books !== null) {
@@ -59,12 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
       populateBooks();
 
     } catch (error) {
-      showError('Error al cargar la lista de libros. Verifica tu servidor local o la ruta del archivo.', loadManifest);
+      console.error(error);
+      showError('Error al cargar la lista de libros. Revisa la ruta de manifest.json.', loadManifest);
     }
   }
 
   // ==========================================
-  // POBLADO DINÁMICO DE SELECTORES
+  // 3. POBLADO Y ACTUALIZACIÓN DE SELECTORES
   // ==========================================
   function populateBooks() {
     const defaultOpt = new Option('-- Seleccionar Libro --', '');
@@ -76,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateChapters() {
     const selectedBookId = bookSelect.value;
-    renderPassage(); // Actualizar vista inferior
+    renderPassage();
 
     if (!selectedBookId) {
       resetSelect(chapterSelect, 'Selecciona un libro');
@@ -89,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (totalChapters === 0) {
       resetSelect(chapterSelect, 'Sin capítulos');
+      resetSelect(verseSelect, 'Sin versículos');
       return;
     }
 
@@ -98,37 +100,56 @@ document.addEventListener('DOMContentLoaded', () => {
     chapterSelect.replaceChildren(defaultOpt, ...options);
     chapterSelect.disabled = false;
 
+    // Reiniciar versículos al cambiar de libro
     resetSelect(verseSelect, 'Selecciona un capítulo');
   }
 
   function updateVerses() {
-  const selectedBookId = bookSelect.value;
-  const chapterIdx = parseInt(chapterSelect.value, 10) - 1; // Base 0 para el arreglo
+    const selectedBookId = bookSelect.value;
+    const chapterVal = chapterSelect.value;
+    renderPassage();
 
-  if (!selectedBookId || isNaN(chapterIdx) || chapterIdx < 0) {
-    resetSelect(verseSelect, 'Selecciona un capítulo');
-    return;
+    if (!selectedBookId || !chapterVal) {
+      resetSelect(verseSelect, 'Selecciona un capítulo');
+      return;
+    }
+
+    const chapterNum = parseInt(chapterVal, 10);
+    const chapterIdx = chapterNum - 1; // Índice base 0
+
+    const book = booksList.find(b => (b.id || b.code) === selectedBookId);
+
+    if (!book) {
+      resetSelect(verseSelect, 'Error de libro');
+      return;
+    }
+
+    let totalVerses = 0;
+
+    // 1. Intentar obtener el conteo exacto desde el arreglo verseCounts
+    if (Array.isArray(book.verseCounts) && book.verseCounts[chapterIdx] !== undefined) {
+      totalVerses = book.verseCounts[chapterIdx];
+    } 
+    // 2. FALLBACK: Si no existe verseCounts en el JSON, asigna un número por defecto para no bloquear la interfaz
+    else {
+      console.warn(`[Biblia] 'verseCounts' no encontrado para ${book.name} (Cap. ${chapterNum}). Aplicando respaldo de 50 versículos.`);
+      totalVerses = 50; 
+    }
+
+    if (totalVerses <= 0) {
+      resetSelect(verseSelect, 'Sin versículos');
+      return;
+    }
+
+    const defaultOpt = new Option('-- Versículo --', '');
+    const options = Array.from({ length: totalVerses }, (_, i) => new Option(`Versículo ${i + 1}`, i + 1));
+
+    verseSelect.replaceChildren(defaultOpt, ...options);
+    verseSelect.disabled = false;
   }
-
-  const book = booksList.find(b => (b.id || b.code) === selectedBookId);
-  
-  // Extrae la cantidad exacta de versículos para ese capítulo
-  const totalVerses = Array.isArray(book?.verseCounts) ? book.verseCounts[chapterIdx] : 0;
-
-  if (totalVerses === 0) {
-    resetSelect(verseSelect, 'Sin versículos');
-    return;
-  }
-
-  const defaultOpt = new Option('-- Versículo --', '');
-  const options = Array.from({ length: totalVerses }, (_, i) => new Option(`Versículo ${i + 1}`, i + 1));
-
-  verseSelect.replaceChildren(defaultOpt, ...options);
-  verseSelect.disabled = false;
-}
 
   // ==========================================
-  // VISTA INFERIOR (Salida Abajo)
+  // 4. MUESTRA EN PANTALLA (Salida Inferior)
   // ==========================================
   function renderPassage() {
     if (!passageDisplay) return;
@@ -143,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const book = booksList.find(b => (b.id || b.code) === bookId);
-    let titleText = `${book?.name}`;
+    let titleText = `${book?.name || ''}`;
     
     if (chapter) titleText += ` ${chapter}`;
     if (verse) titleText += `:${verse}`;
@@ -156,9 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // HELPER FUNCTIONS & LISTENERS
+  // 5. FUNCIONES AUXILIARES Y EVENTOS
   // ==========================================
   function resetSelect(selectEl, placeholder) {
+    if (!selectEl) return;
     selectEl.replaceChildren(new Option(placeholder, ''));
     selectEl.disabled = true;
   }
@@ -184,9 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
     statusBanner.innerHTML = '';
   }
 
+  // Escuchadores de eventos
   bookSelect.addEventListener('change', updateChapters);
   chapterSelect.addEventListener('change', updateVerses);
   verseSelect.addEventListener('change', renderPassage);
 
+  // Iniciar la carga
   loadManifest();
 });

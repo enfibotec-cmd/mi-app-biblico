@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Selector Bíblico</title>
   <link rel="stylesheet" href="src/styles.css" />
-  
   <script src="src/js/app.js" defer></script>
 </head>
 <body>
@@ -19,42 +18,33 @@
     <section class="card">
       <h2>Seleccionar Pasaje</h2>
       
+      <!-- Contenedor accesible para errores y estados de carga -->
+      <div id="statusBanner" class="status-banner hidden" aria-live="polite"></div>
+
       <div class="select-grid">
         <div class="select-group">
           <label for="bookSelect">Libro</label>
-          <select id="bookSelect"></select>
+          <select id="bookSelect" disabled>
+            <option value="">Cargando libros...</option>
+          </select>
         </div>
+        
         <div class="select-group">
           <label for="chapterSelect">Capítulo</label>
-          <select id="chapterSelect"></select>
+          <select id="chapterSelect" disabled>
+            <option value="">Selecciona un libro</option>
+          </select>
         </div>
+        
         <div class="select-group">
           <label for="verseSelect">Versículo</label>
-          <select id="verseSelect"></select>
+          <select id="verseSelect" disabled>
+            <option value="">Selecciona un capítulo</option>
+          </select>
         </div>
       </div>
-
-      <div class="button-grid">
-        <button type="button" id="showBtn" class="btn-primary">Mostrar</button>
-        <button type="button" id="randomBtn">🎲 Aleatorio</button>
-        <button type="button" id="copyBtn">📋 Copiar</button>
-        <button type="button" id="favBtn">⭐ Guardar</button>
-      </div>
-
-      <div class="verse-box" id="verseDisplay">
-        <!-- El pasaje cargará automáticamente -->
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>⭐ Favoritos Guardados</h2>
-      <ul class="fav-list" id="favList"></ul>
     </section>
   </main>
-
-  <footer class="site-footer">
-    <p>Selector Bíblico — Funciona 100% offline sin necesidad de servidor.</p>
-  </footer>
 
 </body>
 </html>

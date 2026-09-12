@@ -1,30 +1,33 @@
 /* Archivo: src/js/data.js */
 window.BibleRepository = {
   data: null,
-  cache: new Map(), // Caché para consultas frecuentes
+  cache: new Map(),
   
   async init() {
     try {
-      // Verificar si ya está cargado
       if (this.data) return this.data;
       
-      const response = await fetch('/data/biblia.json', {
-        cache: 'force-cache' // Forzar caché del navegador
+      // Ruta relativa './' en lugar de absoluta '/' para evitar fallos de despliegue
+      const response = await fetch('./data/biblia.json', {
+        cache: 'force-cache'
       });
       
-      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
       
       const json = await response.json();
       
-      // Validar estructura
-      if (!json.books || typeof json.books !== 'object') {
-        throw new Error('Estructura de datos inválida');
+      // Acepta la clave 'books' o asume que la raíz contiene los libros
+      const booksData = json.books || json;
+      
+      if (!booksData || typeof booksData !== 'object' || Array.isArray(booksData)) {
+        throw new Error('Estructura de datos inválida en biblia.json');
       }
       
-      this.data = json.books;
+      this.data = booksData;
       return this.data;
     } catch (err) {
-      console.error("Error al cargar biblia.json:", err);
+      console.error("Error al inicializar BibleRepository:", err);
+      this.data = null;
       throw err;
     }
   },
@@ -32,7 +35,6 @@ window.BibleRepository = {
   getBooks() {
     if (!this.data) return [];
     
-    // Cachear resultado
     if (!this.cache.has('books')) {
       this.cache.set('books', Object.keys(this.data));
     }
@@ -45,12 +47,11 @@ window.BibleRepository = {
   },
   
   getVerseCount(bookName, chapter) {
-    if (!this.data || !bookName || !chapter) return 30; // Default
+    if (!this.data || !bookName || !chapter) return 30;
     
     const book = this.data[bookName];
     if (!book?.sample) return 30;
     
-    // Contar versículos disponibles en el sample
     const verses = Object.keys(book.sample)
       .filter(key => key.startsWith(`${chapter}-`))
       .length;
@@ -63,7 +64,6 @@ window.BibleRepository = {
     
     const cacheKey = `${bookName}-${chapter}-${verse}`;
     
-    // Verificar caché
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
@@ -78,7 +78,6 @@ window.BibleRepository = {
     const key = `${chapter}-${verse}`;
     const text = book.sample?.[key] || `[Texto no disponible para ${bookName} ${chapter}:${verse}]`;
     
-    // Guardar en caché (limitar tamaño)
     if (this.cache.size < 1000) {
       this.cache.set(cacheKey, text);
     }
@@ -90,6 +89,8 @@ window.BibleRepository = {
     if (!this.data) return null;
     
     const books = this.getBooks();
+    if (books.length === 0) return null;
+    
     const randomBook = books[Math.floor(Math.random() * books.length)];
     const chapters = this.getChapterCount(randomBook);
     const randomChapter = Math.floor(Math.random() * chapters) + 1;

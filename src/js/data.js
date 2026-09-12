@@ -8,7 +8,7 @@ window.BibleRepository = {
       // Verificar si ya está cargado
       if (this.data) return this.data;
       
-      const response = await fetch('data/biblia.json', {
+      const response = await fetch('/data/biblia.json', {
         cache: 'force-cache' // Forzar caché del navegador
       });
       

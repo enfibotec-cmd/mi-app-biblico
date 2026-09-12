@@ -102,24 +102,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateVerses() {
-    const selectedBookId = bookSelect.value;
-    const chapterIdx = parseInt(chapterSelect.value, 10) - 1;
-    renderPassage(); // Actualizar vista inferior
+  const selectedBookId = bookSelect.value;
+  const chapterIdx = parseInt(chapterSelect.value, 10) - 1; // Base 0 para el arreglo
 
-    if (!selectedBookId || isNaN(chapterIdx) || chapterIdx < 0) {
-      resetSelect(verseSelect, 'Selecciona un capítulo');
-      return;
-    }
-
-    const book = booksList.find(b => (b.id || b.code) === selectedBookId);
-    const totalVerses = Array.isArray(book?.verseCounts) ? book.verseCounts[chapterIdx] : 0;
-
-    const defaultOpt = new Option('-- Versículo --', '');
-    const options = Array.from({ length: totalVerses }, (_, i) => new Option(`Versículo ${i + 1}`, i + 1));
-
-    verseSelect.replaceChildren(defaultOpt, ...options);
-    verseSelect.disabled = false;
+  if (!selectedBookId || isNaN(chapterIdx) || chapterIdx < 0) {
+    resetSelect(verseSelect, 'Selecciona un capítulo');
+    return;
   }
+
+  const book = booksList.find(b => (b.id || b.code) === selectedBookId);
+  
+  // Extrae la cantidad exacta de versículos para ese capítulo
+  const totalVerses = Array.isArray(book?.verseCounts) ? book.verseCounts[chapterIdx] : 0;
+
+  if (totalVerses === 0) {
+    resetSelect(verseSelect, 'Sin versículos');
+    return;
+  }
+
+  const defaultOpt = new Option('-- Versículo --', '');
+  const options = Array.from({ length: totalVerses }, (_, i) => new Option(`Versículo ${i + 1}`, i + 1));
+
+  verseSelect.replaceChildren(defaultOpt, ...options);
+  verseSelect.disabled = false;
+}
 
   // ==========================================
   // VISTA INFERIOR (Salida Abajo)

@@ -213,3 +213,49 @@ button:hover {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Utilidades visuales de estado */
+.hidden {
+  display: none !important;
+}
+
+/* Banner de Estado / Error UI */
+.status-banner {
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.status-banner.error {
+  background-color: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #b91c1c;
+}
+
+.retry-btn {
+  background-color: #b91c1c;
+  color: #ffffff;
+  border: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.retry-btn:hover {
+  opacity: 0.9;
+}
+
+/* Selectores deshabilitados */
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: rgba(0, 0, 0, 0.05);
+}
